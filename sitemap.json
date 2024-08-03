@@ -1,0 +1,32 @@
+[
+    {
+        "name": "Kukode Lab",
+        "loc": "https://lab.kukode.com/",
+        "lastmod": "2024-07-01",
+        "description": "Homepage Kukode Lab"
+    },
+    {
+        "name": "Al-Matsurat",
+        "loc": "https://lab.kukode.com/almatsurat/",
+        "lastmod": "2024-06-15",
+        "description": "Al-Matsurat Online (PWA)"
+    },
+    {
+        "name": "Gmaps Image",
+        "loc": "https://lab.kukode.com/mapimg/",
+        "lastmod": "2024-06-20",
+        "description": "Download Google Maps Photos"
+    },
+    {
+        "name": "Imgur Uploader",
+        "loc": "https://lab.kukode.com/imgur/",
+        "lastmod": "2024-07-01",
+        "description": "Free Upload Image on Imgur"
+    },
+    {
+        "name": "Flex Playground",
+        "loc": "https://lab.kukode.com/flex/",
+        "lastmod": "2024-07-01",
+        "description": "CSS Flex Playground"
+    }
+]
