@@ -1,32 +1,99 @@
 [
-    {
+{
         "name": "Kukode Lab",
-        "loc": "https://lab.kukode.com/",
+        "loc": "://lab.kukode.com",
         "lastmod": "2024-07-01",
-        "description": "Homepage Kukode Lab"
+        "description": "All links for our playground"
     },
     {
         "name": "Al-Matsurat",
-        "loc": "https://lab.kukode.com/almatsurat/",
-        "lastmod": "2024-06-15",
-        "description": "Al-Matsurat Online (PWA)"
+        "loc": "://lab.kukode.com/almatsurat/",
+        "lastmod": "2024-07-01",
+        "description": "Read Al-Ma'tsurat Online"
     },
     {
-        "name": "Gmaps Image",
-        "loc": "https://lab.kukode.com/mapimg/",
-        "lastmod": "2024-06-20",
-        "description": "Download Google Maps Photos"
+        "name": "GMaps Image",
+        "loc": "://lab.kukode.com/mapimg/",
+        "lastmod": "2024-07-01",
+        "description": "Download Image from Google Maps"
+    },
+    {
+        "name": "Lipsum",
+        "loc": "://lab.kukode.com/lipsum-generator",
+        "lastmod": "2024-07-01",
+        "description": "Lorem Ipsum Text Generator"
+    },
+    {
+        "name": "Flexbox Playground",
+        "loc": "://lab.kukode.com/flex/",
+        "lastmod": "2024-07-01",
+        "description": " CSS Flexbox Playground"
+    },
+    {
+        "name": "Password Generator",
+        "loc": "://lab.kukode.com/password-generator/",
+        "lastmod": "2024-07-01",
+        "description": "Password Generator"
+    },
+    {
+        "name": "Noisli",
+        "loc": "://lab.kukode.com/noisli",
+        "lastmod": "2024-07-01",
+        "description": "Noisli - Backsound Nature Player for Coding"
+    },
+    {
+        "name": "MiniPaint",
+        "loc": "://lab.kukode.com/miniPaint/",
+        "lastmod": "2024-07-01",
+        "description": "Mini Paint - Online Image Editor"
+    },
+    {
+        "name": "Relax",
+        "loc": "://lab.kukode.com/relax/",
+        "lastmod": "2024-07-01",
+        "description": "Online Text Writer with Relaxing Backsound"
+    },
+    {
+        "name": "JSON Formatter",
+        "loc": "://lab.kukode.com/json-formatter/",
+        "lastmod": "2024-07-01",
+        "description": "JSON Formatter"
     },
     {
         "name": "Imgur Uploader",
-        "loc": "https://lab.kukode.com/imgur/",
+        "loc": "://lab.kukode.com/imgur/",
         "lastmod": "2024-07-01",
-        "description": "Free Upload Image on Imgur"
+        "description": "Imgur Uploader"
     },
     {
-        "name": "Flex Playground",
-        "loc": "https://lab.kukode.com/flex/",
+        "name": "Carbon",
+        "loc": "://carbon-kukode.vercel.app/",
         "lastmod": "2024-07-01",
-        "description": "CSS Flex Playground"
+        "description": "Beautiful Code Share"
+    },
+    {
+        "name": "CSS Transform",
+        "loc": "://css-transform.kukode.com/",
+        "lastmod": "2024-07-01",
+        "description": "CSS Transform Playground"
+    },
+    {
+        "name": "Flow",
+        "loc": "://flow.kukode.com/",
+        "lastmod": "2024-07-01",
+        "description": "Simple Website Flow Image Builder"
+    },
+    {
+        "name": "Assets Detector",
+        "loc": "://tool.kukode.com/asset-detector/",
+        "lastmod": "2024-07-01",
+        "description": "Website Assets Detector"
+    },
+    {
+        "name": "Cryptoji",
+        "loc": "://cryptoji.kukode.com/",
+        "lastmod": "2024-07-01",
+        "description": " Encription Text to Emoji"
     }
 ]
+

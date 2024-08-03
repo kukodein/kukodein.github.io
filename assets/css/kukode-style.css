@@ -1,0 +1,108 @@
+/* General */
+
+:root{
+	--bs-font-sans-serif: "Roboto", system-ui, Helvetica, Arial, sans-serif;
+}
+
+.card .card-body {
+	font-family: "Roboto", system-ui, Helvetica, Arial, sans-serif;
+}
+
+
+/* Navbar */
+
+#navbarBlur{
+	margin-right: .75rem !important;
+	margin-left: .75rem !important;
+}
+
+
+/* Sidebar */
+
+@media (min-width: 1199.98px) {
+	body.g-sidenav-pinned #sidenav-main{
+		transform: translateX(-17.125rem);
+	}
+}
+
+body.g-sidenav-pinned main{
+	margin-left: 0rem !important;
+}
+
+.navbar-vertical.navbar-expand-xs .navbar-nav .nav-link{
+	padding-top: 0.4rem;
+	padding-bottom: 0.4rem;
+}
+
+#sidenav-collapse-main {
+	margin-right: 5px;
+}
+
+#sidenav-collapse-main::-webkit-scrollbar {
+	width: 5px;
+}
+
+#sidenav-collapse-main::-webkit-scrollbar-track {
+	border-radius: 8px;
+	background-color: #e7e7e7;
+	-border: 1px solid #cacaca;
+}
+
+#sidenav-collapse-main::-webkit-scrollbar-thumb {
+	border-radius: 8px;
+	-background-color: #d55959;
+	background-image: linear-gradient(195deg, #EC407A 0%, #D81B60 100%);
+}
+
+
+/* DataTables */
+
+table.dataTable.no-footer {
+    border-bottom: transparent !important;
+}
+
+#exampleMyTable_wrapper input[type="search"],
+#exampleMyTable_wrapper select
+{
+	border-radius: 0.5rem;
+}
+
+#exampleMyTable_wrapper input[type="search"]:focus-visible{
+	outline: none;
+}
+
+#exampleMyTable_wrapper a.paginate_button {
+	background:rgba(0, 0, 0, 0);
+	border: 1px solid rgb(233, 30, 99);
+	font-size: 0.75rem;
+	padding: 0.375rem 0.8rem;
+	border-radius: 0.5rem;
+}
+
+#exampleMyTable_wrapper a.paginate_button.current {
+	background: rgb(233, 30, 99);
+	color: white !important;
+}
+  
+#exampleMyTable_wrapper a.paginate_button:hover {
+	background: rgb(233, 30, 99);
+	color: white !important;
+}
+
+#exampleMyTable_wrapper a.paginate_button.disabled {
+	color: #999 !important;
+    border-color: #999;
+}
+
+#exampleMyTable_wrapper a.paginate_button.disabled:hover {
+	background:rgba(0, 0, 0, 0);
+}
+
+
+/* Sign Up Page */
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:after {
+	font-family: 'Material Icons Round';
+	content: "\e5ca";
+	font-size: 1rem;
+}
