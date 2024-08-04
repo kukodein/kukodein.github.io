@@ -2,67 +2,63 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     
     <url>
-        <loc>://lab.kukode.com</loc>
+        <loc>https://lab.kukode.com</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/almatsurat/</loc>
+        <loc>https://lab.kukode.com/almatsurat/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/mapimg/</loc>
+        <loc>https://lab.kukode.com/mapimg/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/lipsum-generator</loc>
+        <loc>https://lab.kukode.com/lipsum-generator</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/flex/</loc>
+        <loc>https://lab.kukode.com/flex/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/password-generator/</loc>
+        <loc>https://lab.kukode.com/password-generator/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/noisli</loc>
+        <loc>https://lab.kukode.com/noisli</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/miniPaint/</loc>
+        <loc>https://lab.kukode.com/miniPaint/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/relax/</loc>
+        <loc>https://lab.kukode.com/relax/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/json-formatter/</loc>
+        <loc>https://lab.kukode.com/json-formatter/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://lab.kukode.com/imgur/</loc>
+        <loc>https://lab.kukode.com/imgur/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://carbon-kukode.vercel.app/</loc>
+        <loc>https://css-transform.kukode.com/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://css-transform.kukode.com/</loc>
+        <loc>https://flow.kukode.com/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://flow.kukode.com/</loc>
+        <loc>https://tool.kukode.com/asset-detector/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
     <url>
-        <loc>://tool.kukode.com/asset-detector/</loc>
-        <lastmod>2024-07-01T00:00:00.000Z</lastmod>
-    </url>
-    <url>
-        <loc>://cryptoji.kukode.com/</loc>
+        <loc>https://cryptoji.kukode.com/</loc>
         <lastmod>2024-07-01T00:00:00.000Z</lastmod>
     </url>
 </urlset>
