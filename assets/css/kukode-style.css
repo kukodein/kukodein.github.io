@@ -55,6 +55,13 @@ body.g-sidenav-pinned main{
 }
 
 
+/* Main Content */
+
+#content {
+	min-height: 60vh;
+}
+
+
 /* DataTables */
 
 table.dataTable.no-footer {
