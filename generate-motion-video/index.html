@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotionForge — Animated Background Studio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fira+Code:wght@300;400;500&display=swap');
+
+:root {
+  --bg: #080810;
+  --surface: #0f0f1a;
+  --surface2: #161625;
+  --surface3: #1e1e30;
+  --border: #252538;
+  --accent: #00f5c4;
+  --accent2: #7c3aff;
+  --accent3: #ff6b35;
+  --text: #e8e8f0;
+  --muted: #5a5a78;
+  --glow: rgba(0,245,196,0.15);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 100;
+}
+.logo {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.logo span { color: var(--accent); }
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pill {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: var(--surface2);
+}
+.pill.active { border-color: var(--accent); color: var(--accent); background: rgba(0,245,196,0.08); }
+.header-right { display: flex; gap: 8px; align-items: center; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 8px 16px;
+  border: none; cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+}
+.btn-glow {
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 0 20px rgba(0,245,196,0.3);
+}
+.btn-glow:hover { box-shadow: 0 0 30px rgba(0,245,196,0.5); transform: translateY(-1px); }
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-purple {
+  background: var(--accent2);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(124,58,255,0.3);
+}
+.btn-purple:hover { box-shadow: 0 0 30px rgba(124,58,255,0.5); transform: translateY(-1px); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+/* ── MAIN LAYOUT ── */
+.app-body {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── LEFT PANEL ── */
+.panel {
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.panel::-webkit-scrollbar { width: 3px; }
+.panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.panel-left { border-right: 1px solid var(--border); }
+.panel-right { border-left: 1px solid var(--border); }
+
+.section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.section-title {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* PRESET GRID */
+.preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.preset-card {
+  aspect-ratio: 16/9;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.2s;
+}
+.preset-card:hover { border-color: var(--muted); transform: scale(1.02); }
+.preset-card.active { border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+.preset-card canvas { width: 100%; height: 100%; display: block; }
+.preset-label {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 4px 6px;
+  font-size: 9px;
+  font-family: 'Fira Code', monospace;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  color: rgba(255,255,255,0.8);
+  text-align: center;
+}
+
+/* CONTROLS */
+.ctrl-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.ctrl-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'Fira Code', monospace;
+}
+.ctrl-value {
+  font-size: 12px;
+  color: var(--accent);
+  font-family: 'Fira Code', monospace;
+  min-width: 36px;
+  text-align: right;
+}
+.slider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--surface3);
+  border-radius: 4px;
+  outline: none;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(0,245,196,0.5);
+  cursor: pointer;
+}
+
+/* COLOR PALETTE */
+.color-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.color-swatch {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+  position: relative;
+}
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.active { border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+.color-swatch.custom {
+  background: conic-gradient(red, yellow, green, cyan, blue, magenta, red);
+  overflow: hidden;
+}
+.color-swatch.custom input {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+
+/* EFFECT TOGGLE */
+.effect-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.effect-btn {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 11px;
+  font-family: 'Fira Code', monospace;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.effect-btn:hover { border-color: var(--muted); color: var(--text); }
+.effect-btn.on { border-color: var(--accent); color: var(--accent); background: rgba(0,245,196,0.06); }
+
+/* SELECT */
+.styled-select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+  margin-bottom: 10px;
+}
+.styled-select:focus { border-color: var(--accent); }
+option { background: var(--surface2); }
+
+/* ── CANVAS CENTER ── */
+.canvas-area {
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#mainCanvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.canvas-hud {
+  position: absolute;
+  top: 12px; left: 12px;
+  display: flex; gap: 6px;
+}
+.hud-pill {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+}
+.hud-pill.rec { border-color: var(--accent3); color: var(--accent3); }
+.hud-pill.rec::before {
+  content: '●';
+  margin-right: 4px;
+  animation: blink 1s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.canvas-controls {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 8px 16px;
+}
+.cc-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 6px;
+  transition: color 0.15s;
+  line-height: 1;
+}
+.cc-btn:hover { color: var(--accent); }
+.cc-btn.active { color: var(--accent); }
+.cc-divider { width: 1px; height: 20px; background: var(--border); }
+.cc-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 0 4px;
+}
+
+/* ── RIGHT PANEL ── */
+.export-stat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.stat-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+}
+.stat-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent);
+  font-family: 'Fira Code', monospace;
+}
+.stat-lbl {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+  font-family: 'Fira Code', monospace;
+}
+
+.progress-outer {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 8px 0;
+  display: none;
+}
+.progress-inner {
+  height: 6px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  width: 0%;
+  transition: width 0.3s;
+}
+.progress-text {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  padding: 4px 10px;
+}
+
+.stock-card {
+  background: linear-gradient(135deg, rgba(124,58,255,0.08), rgba(0,245,196,0.05));
+  border: 1px solid rgba(124,58,255,0.2);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.stock-card-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent2);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 5px;
+}
+.stock-tip {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 3px 0 3px 14px;
+  position: relative;
+  font-family: 'Fira Code', monospace;
+}
+.stock-tip::before { content: '›'; position:absolute; left:2px; color: var(--accent); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  transform: translateX(120%);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 9999;
+  max-width: 280px;
+}
+.toast.show { transform: translateX(0); }
+.toast.err { border-left-color: #ff4466; }
+
+/* TOGGLE */
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.toggle-label { font-size: 12px; color: var(--muted); font-family: 'Fira Code', monospace; }
+.tgl { position:relative; width:36px; height:19px; cursor:pointer; }
+.tgl input { opacity:0; width:0; height:0; }
+.tgl-track {
+  position:absolute; inset:0;
+  background: var(--surface3);
+  border-radius:20px;
+  border: 1px solid var(--border);
+  transition:0.3s;
+}
+.tgl-track::before {
+  content:'';
+  position:absolute;
+  width:13px; height:13px;
+  top:2px; left:2px;
+  background: var(--muted);
+  border-radius:50%;
+  transition:0.3s;
+}
+.tgl input:checked ~ .tgl-track { background: rgba(0,245,196,0.15); border-color: var(--accent); }
+.tgl input:checked ~ .tgl-track::before { transform:translateX(17px); background: var(--accent); }
+
+/* CATEGORY TABS */
+.cat-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.cat-tab {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.cat-tab:hover { border-color: var(--muted); color: var(--text); }
+.cat-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(0,245,196,0.08); }
+.cat-desc {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  padding: 6px 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  border-left: 2px solid var(--accent2);
+  line-height: 1.5;
+}
+
+.dur-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.dur-btn {
+  padding: 6px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 11px;
+  font-family: 'Fira Code', monospace;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.dur-btn:hover { border-color: var(--accent); color: var(--accent); }
+.dur-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,245,196,0.08); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    Motion<span>Forge</span>
+  </div>
+  <div class="header-center">
+    <span class="pill" id="fpsHud">60 FPS</span>
+    <span class="pill" id="resHud">1920×1080</span>
+    <span class="pill active" id="presetHud">PARTICLES</span>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-outline" onclick="randomize()">🎲 Randomize</button>
+    <button class="btn btn-purple" onclick="startRecord()" id="recBtn">⏺ Record</button>
+    <button class="btn btn-glow" onclick="exportVideo()" id="exportBtn">⬇ Export MP4</button>
+  </div>
+</header>
+
+<div class="app-body">
+
+  <!-- LEFT PANEL -->
+  <div class="panel panel-left">
+
+    <div class="section" style="padding-bottom:10px">
+      <div class="section-title">🎨 Preset Categories</div>
+      <div class="cat-tabs" id="catTabs">
+        <button class="cat-tab active" data-cat="particle" onclick="switchCat(this,'particle')">① Particle</button>
+        <button class="cat-tab" data-cat="fluid" onclick="switchCat(this,'fluid')">② Fluid</button>
+        <button class="cat-tab" data-cat="tech" onclick="switchCat(this,'tech')">③ Tech</button>
+        <button class="cat-tab" data-cat="geometric" onclick="switchCat(this,'geometric')">④ Geo</button>
+        <button class="cat-tab" data-cat="nature" onclick="switchCat(this,'nature')">⑤ Nature</button>
+        <button class="cat-tab" data-cat="kaleidoscope" onclick="switchCat(this,'kaleidoscope')">⑥ Kaleido</button>
+        <button class="cat-tab" data-cat="retro" onclick="switchCat(this,'retro')">⑦ Retro</button>
+      </div>
+      <div class="cat-desc" id="catDesc">Particle & Abstract Loop — volume tertinggi di Adobe Stock</div>
+      <div class="preset-grid" id="presetGrid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🎨 Color Theme</div>
+      <div class="color-row" id="colorRow">
+        <!-- Filled by JS -->
+      </div>
+      <div class="ctrl-row">
+        <span class="ctrl-label">Background</span>
+      </div>
+      <input type="color" id="bgColorPicker" value="#080810"
+        style="width:100%;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;padding:0;margin-bottom:10px"
+        onchange="updateBgColor(this.value)">
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚙ Parameters</div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">Particle Count</span>
+        <span class="ctrl-value" id="countVal">150</span>
+      </div>
+      <input type="range" class="slider" id="countSlider" min="20" max="800" value="150" oninput="updateParam('count', this.value)">
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">Speed</span>
+        <span class="ctrl-value" id="speedVal">1.0</span>
+      </div>
+      <input type="range" class="slider" id="speedSlider" min="1" max="50" value="10" oninput="updateParam('speed', this.value)">
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">Size</span>
+        <span class="ctrl-value" id="sizeVal">3</span>
+      </div>
+      <input type="range" class="slider" id="sizeSlider" min="1" max="30" value="6" oninput="updateParam('size', this.value)">
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">Opacity</span>
+        <span class="ctrl-value" id="opacityVal">0.8</span>
+      </div>
+      <input type="range" class="slider" id="opacitySlider" min="1" max="10" value="8" oninput="updateParam('opacity', this.value)">
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">Blur / Glow</span>
+        <span class="ctrl-value" id="blurVal">0</span>
+      </div>
+      <input type="range" class="slider" id="blurSlider" min="0" max="20" value="0" oninput="updateParam('blur', this.value)">
+    </div>
+
+    <div class="section">
+      <div class="section-title">✨ Effects</div>
+      <div class="effect-grid" id="effectGrid">
+        <button class="effect-btn on" data-effect="trail" onclick="toggleEffect(this)">trail</button>
+        <button class="effect-btn" data-effect="connect" onclick="toggleEffect(this)">connect</button>
+        <button class="effect-btn" data-effect="pulse" onclick="toggleEffect(this)">pulse</button>
+        <button class="effect-btn" data-effect="rotate" onclick="toggleEffect(this)">rotate</button>
+        <button class="effect-btn" data-effect="gravity" onclick="toggleEffect(this)">gravity</button>
+        <button class="effect-btn" data-effect="mouse" onclick="toggleEffect(this)">mouse</button>
+        <button class="effect-btn" data-effect="color_shift" onclick="toggleEffect(this)">color shift</button>
+        <button class="effect-btn" data-effect="turbulence" onclick="toggleEffect(this)">turbulence</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🌊 Motion Type</div>
+      <select class="styled-select" id="motionSelect" onchange="updateMotion(this.value)">
+        <optgroup label="── Particle ──">
+          <option value="float">Float / Drift</option>
+          <option value="spiral">Spiral Vortex</option>
+          <option value="wave">Wave Flow</option>
+          <option value="explode">Explode / Burst</option>
+          <option value="rain">Rain / Fall</option>
+          <option value="rain_up">Rise / Embers</option>
+          <option value="orbit">Orbit</option>
+          <option value="noise">Perlin Noise Field</option>
+          <option value="grid">Grid Pulse</option>
+        </optgroup>
+        <optgroup label="── Fluid ──">
+          <option value="fluid_blob">Fluid Blob / Lava</option>
+          <option value="fluid_wave">Fluid Wave / Aurora</option>
+        </optgroup>
+        <optgroup label="── Kaleidoscope ──">
+          <option value="kaleido">Kaleidoscope Mirror</option>
+          <option value="kaleido_burst">Kaleido Burst</option>
+        </optgroup>
+        <optgroup label="── Retro ──">
+          <option value="retro_grid">Synthwave Grid</option>
+          <option value="retro_horizon">80s Horizon</option>
+          <option value="retro_laser">Laser Beams</option>
+          <option value="retro_glitch">Glitch Wave</option>
+        </optgroup>
+      </select>
+      <select class="styled-select" id="shapeSelect" onchange="updateShape(this.value)">
+        <option value="circle">● Circles</option>
+        <option value="square">■ Squares</option>
+        <option value="triangle">▲ Triangles</option>
+        <option value="star">★ Stars</option>
+        <option value="cross">✚ Cross</option>
+        <option value="ring">○ Rings</option>
+        <option value="line">— Lines</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- CENTER: Canvas -->
+  <div class="canvas-area">
+    <canvas id="mainCanvas"></canvas>
+    <div class="canvas-hud">
+      <span class="hud-pill" id="timerHud">00:00</span>
+      <span class="hud-pill rec" id="recHud" style="display:none">REC</span>
+    </div>
+    <div class="canvas-controls">
+      <button class="cc-btn active" id="playPauseBtn" onclick="togglePlay()" title="Play/Pause">⏸</button>
+      <div class="cc-divider"></div>
+      <button class="cc-btn" onclick="restartAnim()" title="Restart">↺</button>
+      <div class="cc-divider"></div>
+      <span class="cc-label" id="frameHud">frame 0</span>
+      <div class="cc-divider"></div>
+      <button class="cc-btn" onclick="takeScreenshot()" title="Screenshot">📷</button>
+      <div class="cc-divider"></div>
+      <button class="cc-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel panel-right">
+
+    <div class="section">
+      <div class="section-title">📐 Output Settings</div>
+      <div class="ctrl-row" style="margin-bottom:6px">
+        <span class="ctrl-label">Resolution</span>
+      </div>
+      <select class="styled-select" id="resSelect" onchange="updateResolution(this.value)">
+        <option value="1920x1080">1920×1080 (Full HD)</option>
+        <option value="3840x2160">3840×2160 (4K)</option>
+        <option value="1280x720">1280×720 (HD)</option>
+        <option value="1080x1080">1080×1080 (Square)</option>
+        <option value="1080x1920">1080×1920 (Vertical)</option>
+        <option value="2560x1440">2560×1440 (QHD)</option>
+      </select>
+
+      <div class="ctrl-row" style="margin-bottom:6px">
+        <span class="ctrl-label">Duration</span>
+      </div>
+      <div class="dur-grid">
+        <button class="dur-btn" onclick="setDuration(5)">5s</button>
+        <button class="dur-btn active" onclick="setDuration(10)" id="dur10">10s</button>
+        <button class="dur-btn" onclick="setDuration(15)">15s</button>
+        <button class="dur-btn" onclick="setDuration(30)">30s</button>
+      </div>
+
+      <div class="ctrl-row" style="margin-bottom:6px">
+        <span class="ctrl-label">Frame Rate</span>
+      </div>
+      <select class="styled-select" id="fpsSelect" onchange="updateFPS(this.value)">
+        <option value="24">24 FPS (Cinematic)</option>
+        <option value="30" selected>30 FPS (Standard)</option>
+        <option value="60">60 FPS (Smooth)</option>
+      </select>
+
+      <div class="toggle-row">
+        <span class="toggle-label">Loop seamlessly</span>
+        <label class="tgl"><input type="checkbox" id="loopToggle" checked><span class="tgl-track"></span></label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📊 Stats</div>
+      <div class="export-stat">
+        <div class="stat-box">
+          <div class="stat-num" id="sFPS">60</div>
+          <div class="stat-lbl">Live FPS</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="sDur">10s</div>
+          <div class="stat-lbl">Duration</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="sPart">150</div>
+          <div class="stat-lbl">Particles</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="sRes">1080p</div>
+          <div class="stat-lbl">Resolution</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⬇ Export</div>
+      <div class="progress-outer" id="progressOuter">
+        <div class="progress-inner" id="progressBar"></div>
+        <div class="progress-text" id="progressText">Rendering...</div>
+      </div>
+      <button class="btn btn-glow" style="width:100%;margin-bottom:6px" onclick="exportVideo()">⬇ Export WebM → MP4</button>
+      <button class="btn btn-outline" style="width:100%;margin-bottom:6px" onclick="takeScreenshot()">📷 Screenshot PNG</button>
+      <button class="btn btn-outline" style="width:100%" onclick="exportGIF()">🖼 Export GIF Preview</button>
+    </div>
+
+    <div class="section">
+      <div class="stock-card">
+        <div class="stock-card-title">★ Urutan Kategori Terlaku</div>
+        <div class="stock-tip">① Particle & Abstract — volume tertinggi</div>
+        <div class="stock-tip">② Fluid & Liquid — trend "Calming Rhythms"</div>
+        <div class="stock-tip">③ Tech / Data / Futuristic — korporat & iklan</div>
+        <div class="stock-tip">④ Geometric Loop — evergreen, selalu laku</div>
+        <div class="stock-tip">⑤ Nature Abstract — aurora, api, salju</div>
+      </div>
+      <div class="stock-card" style="border-color:rgba(0,245,196,0.2);margin-top:0">
+        <div class="stock-card-title" style="color:var(--accent)">✓ Syarat Adobe Stock</div>
+        <div class="stock-tip">Min 1920×1080, ideal 4K</div>
+        <div class="stock-tip">Durasi 5–60 detik, loop seamless</div>
+        <div class="stock-tip">Tanpa logo, teks, atau watermark</div>
+        <div class="stock-tip">Konversi WebM→MP4 dengan FFmpeg</div>
+      </div>
+      <div style="font-family:'Fira Code',monospace;font-size:10px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;word-break:break-all">
+        ffmpeg -i output.webm -c:v libx264 -crf 18 -preset slow -an output.mp4
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<canvas id="exportCanvas" style="display:none"></canvas>
+
+<script>
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+let W = 1280, H = 720; // display size
+let RW = 1920, RH = 1080; // render/export size
+let fps = 30;
+let duration = 10;
+let isPlaying = true;
+let frameCount = 0;
+let lastFPSTime = 0, fpsFrames = 0, liveFPS = 0;
+let animId = null;
+let isRecording = false;
+let mediaRecorder = null;
+let recordedChunks = [];
+let mouseX = W/2, mouseY = H/2;
+
+// PARAMS
+let params = {
+  count: 150,
+  speed: 1.0,
+  size: 3,
+  opacity: 0.8,
+  blur: 0,
+  colors: ['#00f5c4','#7c3aff','#ff6b35','#00b4ff','#fff'],
+  bgColor: '#080810',
+  motion: 'float',
+  shape: 'circle',
+  effects: { trail: true, connect: false, pulse: false, rotate: false, gravity: false, mouse: false, color_shift: false, turbulence: false },
+  preset: 'particles'
+};
+
+let particles = [];
+
+// ═══════════════════════════════════════════
+//  PRESETS — per category
+// ═══════════════════════════════════════════
+const CAT_INFO = {
+  particle:  { label: '① Particle & Abstract Loop',  desc: 'Volume tertinggi di Adobe Stock — 9M+ klip abstract. Paling banyak dibeli untuk background video & presentasi.' },
+  fluid:     { label: '② Fluid & Liquid Motion',     desc: 'Calming & organic — trend "Calming Rhythms" Adobe. Diminati untuk video meditasi, wellness, luxury branding.' },
+  tech:      { label: '③ Tech / Futuristic / Data',  desc: 'Dipakai iklan korporat, fintech, & konten teknologi. Konten AI-generated makin dominan di kategori ini.' },
+  geometric: { label: '④ Geometric Loop',            desc: 'Evergreen — selalu ada pembeli. Cocok untuk presentasi, broadcast, & motion design.' },
+  nature:    { label: '⑤ Nature-Inspired Abstract',  desc: 'Broad appeal — aurora, api, hujan. Populer untuk video musik, game, & sinematik.' },
+  kaleidoscope: { label: '⑥ Kaleidoscope / Mandala', desc: 'Mirror symmetry & fractal loop — populer untuk video musik, VJ loop, meditasi, & konten spiritual/wellness.' },
+  retro:     { label: '⑦ Retro / Neon / Synthwave',  desc: 'Nostalgia 80s — synthwave, CRT, neon glow. Tren kuat di konten gaming, musik elektronik, & social media.' },
+};
+
+const ALL_PRESETS = {
+  particle: [
+    {
+      id:'p_float', name:'Float Drift',
+      colors:['#00f5c4','#7c3aff','#00b4ff'], bg:'#080810',
+      count:180, speed:0.8, size:3, motion:'float', shape:'circle',
+      effects:{ trail:true }
+    },
+    {
+      id:'p_bokeh', name:'Bokeh Glow',
+      colors:['#fff','#ffd6ff','#d6f5ff'], bg:'#04040a',
+      count:80, speed:0.3, size:9, motion:'float', shape:'circle',
+      effects:{ trail:true, pulse:true, blur:8 }
+    },
+    {
+      id:'p_swirl', name:'Swirl Dust',
+      colors:['#ff6b35','#ff2079','#7c3aff','#00f5c4'], bg:'#050008',
+      count:300, speed:0.4, size:2, motion:'noise', shape:'circle',
+      effects:{ trail:true, pulse:false, color_shift:true }
+    },
+    {
+      id:'p_network', name:'Network',
+      colors:['#00f5c4','#00b4ff'], bg:'#020a10',
+      count:120, speed:0.5, size:2, motion:'float', shape:'circle',
+      effects:{ trail:false, connect:true }
+    },
+  ],
+  fluid: [
+    {
+      id:'f_lava', name:'Lava Lamp',
+      colors:['#ff6b35','#ff2079','#ffcc00'], bg:'#0a0000',
+      count:12, speed:0.4, size:40, motion:'fluid_blob', shape:'circle',
+      effects:{ trail:true, pulse:true }
+    },
+    {
+      id:'f_ink', name:'Ink Bloom',
+      colors:['#7c3aff','#ff2079','#00f5c4'], bg:'#000000',
+      count:8, speed:0.3, size:50, motion:'fluid_blob', shape:'circle',
+      effects:{ trail:true, color_shift:true }
+    },
+    {
+      id:'f_oil', name:'Oil & Water',
+      colors:['#e040fb','#00e5ff','#69f0ae','#ff6b35'], bg:'#010108',
+      count:10, speed:0.25, size:55, motion:'fluid_blob', shape:'circle',
+      effects:{ trail:true, pulse:true, color_shift:true }
+    },
+    {
+      id:'f_wave', name:'Fluid Wave',
+      colors:['#00f5c4','#00b4ff','#0050ff'], bg:'#000810',
+      count:6, speed:0.5, size:60, motion:'fluid_wave', shape:'circle',
+      effects:{ trail:true }
+    },
+    {
+      id:'f_smoke', name:'Smoke Wisp',
+      colors:['#aaa','#888','#ccc','#fff'], bg:'#000000',
+      count:15, speed:0.35, size:30, motion:'fluid_blob', shape:'circle',
+      effects:{ trail:true, turbulence:true }
+    },
+    {
+      id:'f_aurora', name:'Aurora Flow',
+      colors:['#00f5c4','#7c3aff','#00b4ff','#69f0ae'], bg:'#010210',
+      count:8, speed:0.2, size:65, motion:'fluid_wave', shape:'circle',
+      effects:{ trail:true, color_shift:true }
+    },
+  ],
+  tech: [
+    {
+      id:'t_matrix', name:'Matrix Rain',
+      colors:['#00ff41','#00cc33'], bg:'#000500',
+      count:200, speed:2.5, size:2, motion:'rain', shape:'line',
+      effects:{ trail:true }
+    },
+    {
+      id:'t_data', name:'Data Stream',
+      colors:['#00b4ff','#00f5c4'], bg:'#020810',
+      count:160, speed:2.0, size:2, motion:'rain', shape:'circle',
+      effects:{ trail:true, color_shift:false }
+    },
+    {
+      id:'t_hud', name:'HUD Radar',
+      colors:['#00f5c4','#00ff88'], bg:'#000d08',
+      count:80, speed:0.6, size:2, motion:'orbit', shape:'ring',
+      effects:{ trail:false, pulse:true, rotate:true }
+    },
+    {
+      id:'t_node', name:'Node Graph',
+      colors:['#7c3aff','#00b4ff','#fff'], bg:'#05050f',
+      count:100, speed:0.4, size:3, motion:'float', shape:'circle',
+      effects:{ trail:false, connect:true, pulse:true }
+    },
+  ],
+  geometric: [
+    {
+      id:'g_mandala', name:'Mandala',
+      colors:['#fff','#00f5c4','#7c3aff'], bg:'#0a0a0a',
+      count:60, speed:0.5, size:8, motion:'orbit', shape:'triangle',
+      effects:{ trail:false, rotate:true, pulse:true }
+    },
+    {
+      id:'g_grid', name:'Grid Pulse',
+      colors:['#00f5c4','#7c3aff'], bg:'#06060f',
+      count:80, speed:0.5, size:6, motion:'grid', shape:'square',
+      effects:{ trail:false, rotate:true, pulse:true }
+    },
+    {
+      id:'g_vortex', name:'Vortex Geo',
+      colors:['#ff6b35','#ff2079','#7c3aff'], bg:'#08000f',
+      count:150, speed:1.5, size:4, motion:'spiral', shape:'triangle',
+      effects:{ trail:true, color_shift:true, rotate:true }
+    },
+    {
+      id:'g_stars', name:'Constellation',
+      colors:['#ffffff','#aaccff','#ffeebb'], bg:'#020408',
+      count:250, speed:0.2, size:2, motion:'float', shape:'circle',
+      effects:{ trail:false, connect:true, pulse:true }
+    },
+  ],
+  nature: [
+    {
+      id:'n_fire', name:'Fire Embers',
+      colors:['#ff2200','#ff6600','#ffaa00','#ffee00'], bg:'#0a0000',
+      count:200, speed:1.8, size:3, motion:'rain_up', shape:'circle',
+      effects:{ trail:true, pulse:true, color_shift:true, turbulence:true }
+    },
+    {
+      id:'n_snow', name:'Snowfall',
+      colors:['#ffffff','#d6eeff','#aaddff'], bg:'#020a14',
+      count:200, speed:0.8, size:2, motion:'rain', shape:'circle',
+      effects:{ trail:false, turbulence:true }
+    },
+    {
+      id:'n_firefly', name:'Fireflies',
+      colors:['#aaff44','#eeff00','#88ff88'], bg:'#010a02',
+      count:60, speed:0.3, size:3, motion:'float', shape:'circle',
+      effects:{ trail:true, pulse:true }
+    },
+    {
+      id:'n_lightning', name:'Lightning',
+      colors:['#ffffff','#aabbff','#7c3aff'], bg:'#020212',
+      count:40, speed:3.0, size:2, motion:'explode', shape:'line',
+      effects:{ trail:true, turbulence:true, color_shift:false }
+    },
+  ],
+  kaleidoscope: [
+    {
+      id:'k_rainbow', name:'Rainbow Kaleido',
+      colors:['#ff2079','#ff6b35','#ffee00','#00f5c4','#7c3aff','#00b4ff'], bg:'#000000',
+      count:120, speed:0.6, size:4, motion:'kaleido', shape:'circle',
+      effects:{ trail:true, color_shift:true }
+    },
+    {
+      id:'k_crystal', name:'Crystal Gem',
+      colors:['#00f5c4','#00b4ff','#fff','#7c3aff'], bg:'#000508',
+      count:80, speed:0.4, size:5, motion:'kaleido', shape:'triangle',
+      effects:{ trail:true, rotate:true }
+    },
+    {
+      id:'k_mandala', name:'Neon Mandala',
+      colors:['#ff2079','#7c3aff','#00f5c4'], bg:'#050005',
+      count:100, speed:0.5, size:4, motion:'kaleido', shape:'star',
+      effects:{ trail:true, pulse:true, color_shift:true }
+    },
+    {
+      id:'k_fractal', name:'Fractal Burst',
+      colors:['#ffee00','#ff6b35','#ff2079'], bg:'#08000a',
+      count:150, speed:0.8, size:3, motion:'kaleido_burst', shape:'circle',
+      effects:{ trail:true, color_shift:true }
+    },
+    {
+      id:'k_mono', name:'Mono Geometry',
+      colors:['#ffffff','#aaaaaa','#555555'], bg:'#000000',
+      count:90, speed:0.5, size:4, motion:'kaleido', shape:'square',
+      effects:{ trail:false, rotate:true, pulse:true }
+    },
+    {
+      id:'k_lotus', name:'Lotus Bloom',
+      colors:['#ff6b35','#ff2079','#ffcc00','#fff'], bg:'#0a0400',
+      count:110, speed:0.35, size:5, motion:'kaleido', shape:'ring',
+      effects:{ trail:true, pulse:true }
+    },
+  ],
+  retro: [
+    {
+      id:'r_synthwave', name:'Synthwave Grid',
+      colors:['#ff2079','#7c3aff','#00f5c4'], bg:'#050010',
+      count:0, speed:0.8, size:3, motion:'retro_grid', shape:'line',
+      effects:{ trail:false }
+    },
+    {
+      id:'r_neon', name:'Neon Glow',
+      colors:['#ff2079','#00f5c4','#ffee00'], bg:'#020008',
+      count:60, speed:0.5, size:4, motion:'float', shape:'circle',
+      effects:{ trail:true, pulse:true, blur:12, color_shift:false }
+    },
+    {
+      id:'r_crt', name:'CRT Scan',
+      colors:['#00ff41','#00cc33','#00ff88'], bg:'#000500',
+      count:180, speed:1.2, size:2, motion:'rain', shape:'line',
+      effects:{ trail:true, turbulence:false }
+    },
+    {
+      id:'r_laser', name:'Laser Beams',
+      colors:['#ff2079','#7c3aff','#00f5c4','#ffee00'], bg:'#000000',
+      count:20, speed:1.5, size:3, motion:'retro_laser', shape:'line',
+      effects:{ trail:true, color_shift:true }
+    },
+    {
+      id:'r_glitch', name:'Glitch Wave',
+      colors:['#ff2079','#00f5c4','#fff'], bg:'#030008',
+      count:100, speed:2.0, size:2, motion:'retro_glitch', shape:'square',
+      effects:{ trail:false, turbulence:true }
+    },
+    {
+      id:'r_80sgrid', name:'80s Horizon',
+      colors:['#ff2079','#ff6b35','#ffee00'], bg:'#050010',
+      count:0, speed:0.6, size:3, motion:'retro_horizon', shape:'line',
+      effects:{ trail:false }
+    },
+  ],
+};
+
+// Flatten all presets for easy lookup
+const PRESETS_FLAT = Object.values(ALL_PRESETS).flat();
+let currentCat = 'particle';
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+window.addEventListener('load', () => {
+  resizeCanvas();
+  switchCat(document.querySelector('.cat-tab[data-cat="particle"]'), 'particle');
+  buildColorPalette();
+  applyPreset(ALL_PRESETS.particle[0]);
+  initParticles();
+  requestAnimationFrame(loop);
+  canvas.addEventListener('mousemove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    mouseX = (e.clientX - r.left) * (W / r.width);
+    mouseY = (e.clientY - r.top) * (H / r.height);
+  });
+  window.addEventListener('resize', resizeCanvas);
+});
+
+function resizeCanvas() {
+  const area = canvas.parentElement;
+  const aw = area.clientWidth, ah = area.clientHeight;
+  const aspect = RW / RH;
+  if (aw / ah > aspect) { H = ah - 40; W = H * aspect; }
+  else { W = aw - 20; H = W / aspect; }
+  canvas.width = W; canvas.height = H;
+}
+
+// ═══════════════════════════════════════════
+//  CATEGORY SWITCHING
+// ═══════════════════════════════════════════
+function switchCat(btn, cat) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('catDesc').textContent = CAT_INFO[cat].desc;
+  buildPresetGrid(cat);
+}
+
+// ═══════════════════════════════════════════
+//  PRESET GRID
+// ═══════════════════════════════════════════
+function buildPresetGrid(cat) {
+  cat = cat || currentCat;
+  const grid = document.getElementById('presetGrid');
+  grid.innerHTML = '';
+  const presets = ALL_PRESETS[cat] || [];
+  presets.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'preset-card' + (p.id === params.preset ? ' active' : '');
+    card.id = 'preset_' + p.id;
+    card.onclick = () => applyPreset(p);
+
+    const c = document.createElement('canvas');
+    c.width = 160; c.height = 90;
+    renderPresetThumb(c, p);
+    card.appendChild(c);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'preset-label';
+    lbl.textContent = p.name;
+    card.appendChild(lbl);
+    grid.appendChild(card);
+  });
+}
+
+function renderPresetThumb(c, p) {
+  const x = c.getContext('2d');
+  x.fillStyle = p.bg;
+  x.fillRect(0, 0, c.width, c.height);
+  const isFluid = p.motion && p.motion.startsWith('fluid');
+  if (isFluid) {
+    const n = Math.min(p.count, 6);
+    for (let i = 0; i < n; i++) {
+      const px = 20 + Math.random() * (c.width - 40);
+      const py = 20 + Math.random() * (c.height - 40);
+      const r = (p.size / 2) * (0.3 + Math.random() * 0.4);
+      const col = p.colors[Math.floor(Math.random() * p.colors.length)];
+      const [rr, gg, bb] = hexToRgb(col);
+      const g = x.createRadialGradient(px, py, 0, px, py, r * 2.5);
+      g.addColorStop(0, `rgba(${rr},${gg},${bb},0.85)`);
+      g.addColorStop(1, `rgba(${rr},${gg},${bb},0)`);
+      x.globalAlpha = 0.7;
+      x.fillStyle = g;
+      x.beginPath(); x.arc(px, py, r * 2.5, 0, Math.PI * 2); x.fill();
+    }
+  } else {
+    const n = Math.min(p.count, 40);
+    for (let i = 0; i < n; i++) {
+      const px = Math.random() * c.width;
+      const py = Math.random() * c.height;
+      const col = p.colors[Math.floor(Math.random() * p.colors.length)];
+      x.globalAlpha = 0.6 + Math.random() * 0.4;
+      x.fillStyle = col;
+      x.beginPath();
+      x.arc(px, py, (p.size / 3) + 1, 0, Math.PI * 2);
+      x.fill();
+    }
+  }
+  x.globalAlpha = 1;
+}
+
+function applyPreset(p) {
+  params.preset = p.id;
+  params.colors = [...p.colors];
+  params.bgColor = p.bg;
+  params.count = p.count;
+  params.speed = p.speed;
+  params.size = p.size;
+  params.motion = p.motion;
+  params.shape = p.shape || 'circle';
+  params.blur = p.blur || 0;
+  params.effects = { trail:false, connect:false, pulse:false, rotate:false, gravity:false, mouse:false, color_shift:false, turbulence:false, ...p.effects };
+
+  // Update UI
+  document.getElementById('countSlider').value = p.count;
+  document.getElementById('countVal').textContent = p.count;
+  document.getElementById('speedSlider').value = p.speed * 10;
+  document.getElementById('speedVal').textContent = p.speed.toFixed(1);
+  document.getElementById('sizeSlider').value = p.size * 2;
+  document.getElementById('sizeVal').textContent = p.size;
+  document.getElementById('blurSlider').value = params.blur;
+  document.getElementById('blurVal').textContent = params.blur;
+  document.getElementById('motionSelect').value = p.motion;
+  document.getElementById('shapeSelect').value = params.shape;
+  document.getElementById('bgColorPicker').value = p.bg;
+  document.getElementById('presetHud').textContent = p.name.toUpperCase();
+  document.getElementById('sPart').textContent = p.count;
+
+  document.querySelectorAll('.effect-btn').forEach(btn => {
+    const eff = btn.dataset.effect;
+    btn.classList.toggle('on', !!params.effects[eff]);
+  });
+  document.querySelectorAll('.preset-card').forEach(el => {
+    el.classList.toggle('active', el.id === 'preset_' + p.id);
+  });
+
+  initParticles();
+}
+
+// ═══════════════════════════════════════════
+//  COLOR PALETTE
+// ═══════════════════════════════════════════
+const PALETTES = [
+  ['#00f5c4','#7c3aff','#00b4ff'],
+  ['#ff6b35','#ff2079','#7c3aff'],
+  ['#00ff41','#00cc33'],
+  ['#fff','#aaccff','#ffeebb'],
+  ['#ff2200','#ff6600','#ffdd00'],
+  ['#e040fb','#00e5ff','#69f0ae'],
+  ['#fff','#aaa','#555'],
+];
+
+function buildColorPalette() {
+  const row = document.getElementById('colorRow');
+  row.innerHTML = '';
+  PALETTES.forEach((pal, i) => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (i === 0 ? ' active' : '');
+    sw.style.background = pal.length === 1 ? pal[0] :
+      `linear-gradient(135deg, ${pal.join(', ')})`;
+    sw.title = pal.join(', ');
+    sw.onclick = () => {
+      params.colors = [...pal];
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+      applyColorsToParticles();
+    };
+    row.appendChild(sw);
+  });
+  // Custom
+  const custom = document.createElement('div');
+  custom.className = 'color-swatch custom';
+  const inp = document.createElement('input');
+  inp.type = 'color';
+  inp.value = '#00f5c4';
+  inp.oninput = (e) => {
+    params.colors = [e.target.value];
+    applyColorsToParticles();
+  };
+  custom.appendChild(inp);
+  row.appendChild(custom);
+}
+
+// Immediately recolor all existing particles without reiniting positions
+function applyColorsToParticles() {
+  particles.forEach(p => {
+    p.color = params.colors[Math.floor(Math.random() * params.colors.length)];
+    p.hue = Math.random() * 360;
+  });
+}
+
+// ═══════════════════════════════════════════
+//  PARTICLE SYSTEM
+// ═══════════════════════════════════════════
+class Particle {
+  constructor() { this.reset(true); }
+  reset(initial = false) {
+    this.x = Math.random() * W;
+    this.y = initial ? Math.random() * H : (params.motion === 'rain' ? -10 : params.motion === 'rain_up' ? H + 10 : Math.random() * H);
+    this.vx = (Math.random() - 0.5) * params.speed;
+    this.vy = (Math.random() - 0.5) * params.speed;
+    this.color = params.colors[Math.floor(Math.random() * params.colors.length)];
+    this.size = (Math.random() * 0.5 + 0.75) * params.size;
+    this.alpha = (Math.random() * 0.4 + 0.6) * params.opacity;
+    this.life = 0;
+    this.maxLife = 300 + Math.random() * 300;
+    this.angle = Math.random() * Math.PI * 2;
+    this.angleV = (Math.random() - 0.5) * 0.05;
+    this.hue = Math.random() * 360;
+    this.orbitR = 50 + Math.random() * 200;
+    this.orbitA = Math.random() * Math.PI * 2;
+    this.orbitS = (Math.random() > 0.5 ? 1 : -1) * params.speed * 0.01;
+    // Noise field
+    this.nx = Math.random() * 5;
+    this.ny = Math.random() * 5;
+    // Fluid blob properties
+    this.blobPhaseX = Math.random() * Math.PI * 2;
+    this.blobPhaseY = Math.random() * Math.PI * 2;
+    this.blobFreqX = 0.003 + Math.random() * 0.004;
+    this.blobFreqY = 0.002 + Math.random() * 0.003;
+    this.blobAmpX = W * (0.15 + Math.random() * 0.25);
+    this.blobAmpY = H * (0.15 + Math.random() * 0.25);
+    this.blobCX = W * (0.1 + Math.random() * 0.8);
+    this.blobCY = H * (0.1 + Math.random() * 0.8);
+    this.fluidSize = params.size * (0.6 + Math.random() * 0.8);
+  }
+  update() {
+    this.life++;
+    this.hue += 0.5;
+    const s = params.speed;
+
+    switch (params.motion) {
+      case 'float':
+        this.x += this.vx; this.y += this.vy;
+        this.vx += (Math.random()-0.5)*0.05;
+        this.vy += (Math.random()-0.5)*0.05;
+        this.vx *= 0.99; this.vy *= 0.99;
+        break;
+      case 'rain':
+        this.y += s * 2 + Math.abs(this.vy);
+        this.x += Math.sin(this.life * 0.02) * 0.5;
+        if (this.y > H + 10) this.reset();
+        break;
+      case 'spiral': {
+        const cx = W/2, cy = H/2;
+        const dx = this.x - cx, dy = this.y - cy;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        const angle = Math.atan2(dy, dx);
+        this.x = cx + Math.cos(angle + 0.01*s) * (dist + 0.2*s);
+        this.y = cy + Math.sin(angle + 0.01*s) * (dist + 0.2*s);
+        if (dist > Math.max(W,H)) this.reset();
+        break;
+      }
+      case 'wave':
+        this.x += s * 0.8;
+        this.y += Math.sin(this.x * 0.01 + frameCount * 0.02 * s) * 1.5;
+        if (this.x > W + 10) { this.x = -10; this.y = Math.random()*H; }
+        break;
+      case 'explode': {
+        const cx = W/2, cy = H/2;
+        const dx = this.x - cx, dy = this.y - cy;
+        const dist = Math.sqrt(dx*dx+dy*dy)+1;
+        this.x += (dx/dist)*s*2;
+        this.y += (dy/dist)*s*2;
+        if (this.x<0||this.x>W||this.y<0||this.y>H) this.reset();
+        break;
+      }
+      case 'orbit': {
+        this.orbitA += this.orbitS * s;
+        const cx = W/2, cy = H/2;
+        this.x = cx + Math.cos(this.orbitA) * this.orbitR;
+        this.y = cy + Math.sin(this.orbitA) * this.orbitR * 0.5;
+        break;
+      }
+      case 'noise': {
+        const nx = this.x * 0.002 + frameCount*0.002*s;
+        const ny = this.y * 0.002 + frameCount*0.002*s;
+        const angle = (simplex(nx, ny) + 1) * Math.PI;
+        this.x += Math.cos(angle) * s;
+        this.y += Math.sin(angle) * s;
+        if (this.x<0||this.x>W||this.y<0||this.y>H) this.reset();
+        break;
+      }
+      case 'rain_up':
+        this.y -= s * 1.8 + Math.abs(this.vy);
+        this.x += Math.sin(this.life * 0.03) * 0.8;
+        if (this.y < -10) this.reset();
+        break;
+      case 'fluid_blob': {
+        // Smooth sinusoidal lissajous-style blob motion
+        this.x = this.blobCX + Math.sin(frameCount * this.blobFreqX * s + this.blobPhaseX) * this.blobAmpX;
+        this.y = this.blobCY + Math.cos(frameCount * this.blobFreqY * s + this.blobPhaseY) * this.blobAmpY;
+        this.hue += 0.3;
+        break;
+      }
+      case 'fluid_wave': {
+        const t2 = frameCount * 0.008 * s;
+        this.x = (this.blobCX + t2 * 80) % (W + 100) - 50;
+        this.y = this.blobCY + Math.sin(this.x * 0.005 + this.blobPhaseY + t2) * this.blobAmpY * 0.7
+               + Math.cos(this.x * 0.008 + this.blobPhaseX) * this.blobAmpY * 0.3;
+        this.hue += 0.4;
+        break;
+      }
+      case 'kaleido': {
+        // Orbit around center with angular symmetry
+        this.orbitA += this.orbitS * s * 0.8;
+        const seg = Math.PI * 2 / 8; // 8-fold symmetry base
+        const baseAngle = (this.orbitA % seg);
+        this.x = W/2 + Math.cos(baseAngle + this.hue * 0.01) * this.orbitR;
+        this.y = H/2 + Math.sin(baseAngle + this.hue * 0.01) * this.orbitR * 0.9;
+        this.orbitR += Math.sin(frameCount * 0.01 + this.blobPhaseX) * 0.3 * s;
+        if (this.orbitR < 10) this.orbitR = 10;
+        if (this.orbitR > Math.min(W,H) * 0.48) this.orbitR = Math.min(W,H) * 0.48;
+        break;
+      }
+      case 'kaleido_burst': {
+        this.orbitA += this.orbitS * s * 1.2;
+        this.orbitR = (Math.abs(Math.sin(frameCount * 0.008 * s + this.blobPhaseX))) * Math.min(W,H) * 0.45 + 5;
+        this.x = W/2 + Math.cos(this.orbitA) * this.orbitR;
+        this.y = H/2 + Math.sin(this.orbitA) * this.orbitR;
+        break;
+      }
+      case 'retro_laser': {
+        this.orbitA += this.orbitS * s * 2;
+        const laserR = Math.min(W,H) * 0.45;
+        this.x = W/2 + Math.cos(this.orbitA) * laserR * (0.2 + Math.abs(Math.sin(frameCount*0.02+this.blobPhaseX)));
+        this.y = H/2 + Math.sin(this.orbitA) * laserR * (0.2 + Math.abs(Math.cos(frameCount*0.02+this.blobPhaseY)));
+        break;
+      }
+      case 'retro_glitch': {
+        this.x += this.vx * s;
+        this.y += this.vy * s;
+        // Random glitch jump
+        if (Math.random() < 0.02) {
+          this.x += (Math.random() - 0.5) * W * 0.3;
+          this.y += (Math.random() - 0.5) * H * 0.1;
+        }
+        if (this.x < 0) this.x = W; if (this.x > W) this.x = 0;
+        if (this.y < 0) this.y = H; if (this.y > H) this.y = 0;
+        break;
+      }
+      // retro_grid and retro_horizon are pure canvas renders, particles not used
+      case 'retro_grid':
+      case 'retro_horizon':
+        break;
+      case 'grid': {
+        const cols = 10, rows = 6;
+        const gx = (Math.floor(this.x/(W/cols))) * (W/cols) + W/cols/2;
+        const gy = (Math.floor(this.y/(H/rows))) * (H/rows) + H/rows/2;
+        this.x += (gx - this.x) * 0.02 + Math.sin(frameCount*0.05+this.orbitA)*s*0.5;
+        this.y += (gy - this.y) * 0.02 + Math.cos(frameCount*0.05+this.orbitA)*s*0.5;
+        break;
+      }
+    }
+
+    // Gravity
+    if (params.effects.gravity) this.vy += 0.05 * s;
+    // Turbulence
+    if (params.effects.turbulence) { this.vx += (Math.random()-0.5)*0.3*s; this.vy += (Math.random()-0.5)*0.3*s; }
+    // Mouse repel
+    if (params.effects.mouse) {
+      const dx = this.x - mouseX, dy = this.y - mouseY;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      if (d < 100) { this.x += dx/d*3; this.y += dy/d*3; }
+    }
+    // Pulse size
+    if (params.effects.pulse) this.size = params.size * (0.8 + 0.4*Math.sin(frameCount*0.05+this.orbitA));
+    // Rotate angle
+    if (params.effects.rotate) this.angle += this.angleV * s;
+    // Color shift
+    if (params.effects.color_shift) this.color = `hsl(${this.hue}, 100%, 60%)`;
+
+    // Wrap
+    if (params.motion === 'float') {
+      if (this.x < -20) this.x = W+20;
+      if (this.x > W+20) this.x = -20;
+      if (this.y < -20) this.y = H+20;
+      if (this.y > H+20) this.y = -20;
+    }
+  }
+  draw(x) {
+    const isFluid = params.motion === 'fluid_blob' || params.motion === 'fluid_wave';
+    if (isFluid) {
+      const r = this.fluidSize * (params.effects.pulse ? 0.85 + 0.3 * Math.sin(frameCount * 0.04 + this.blobPhaseX) : 1);
+      const g = x.createRadialGradient(this.x, this.y, 0, this.x, this.y, r);
+      let [rr, gg, bb] = params.effects.color_shift
+        ? hslToRgb(this.hue % 360, 1, 0.55)
+        : hexToRgb(this.color);
+      g.addColorStop(0,   `rgba(${rr},${gg},${bb},0.75)`);
+      g.addColorStop(0.5, `rgba(${rr},${gg},${bb},0.33)`);
+      g.addColorStop(1,   `rgba(${rr},${gg},${bb},0)`);
+      x.globalAlpha = this.alpha * 0.85;
+      x.fillStyle = g;
+      x.beginPath(); x.arc(this.x, this.y, r, 0, Math.PI * 2); x.fill();
+    } else {
+      x.globalAlpha = this.alpha;
+      if (params.blur > 0) { x.shadowBlur = params.blur * 3; x.shadowColor = this.color; }
+      x.fillStyle = this.color;
+      x.strokeStyle = this.color;
+      drawShape(x, this.x, this.y, this.size, this.angle, params.shape);
+      x.shadowBlur = 0;
+    }
+  }
+}
+
+function drawShape(x, px, py, sz, angle, shape) {
+  x.save();
+  x.translate(px, py);
+  x.rotate(angle);
+  switch(shape) {
+    case 'circle':
+      x.beginPath(); x.arc(0,0,sz,0,Math.PI*2); x.fill(); break;
+    case 'square':
+      x.fillRect(-sz,-sz,sz*2,sz*2); break;
+    case 'triangle':
+      x.beginPath();
+      x.moveTo(0,-sz); x.lineTo(sz,sz); x.lineTo(-sz,sz); x.closePath(); x.fill(); break;
+    case 'star': {
+      x.beginPath();
+      for (let i=0;i<5;i++) {
+        const a1 = (i*4*Math.PI/5)-Math.PI/2;
+        const a2 = ((i*2+1)*Math.PI/5)-Math.PI/2;
+        if(i===0) x.moveTo(Math.cos(a1)*sz, Math.sin(a1)*sz);
+        else x.lineTo(Math.cos(a1)*sz, Math.sin(a1)*sz);
+        x.lineTo(Math.cos(a2)*sz*0.4, Math.sin(a2)*sz*0.4);
+      }
+      x.closePath(); x.fill(); break;
+    }
+    case 'cross':
+      x.fillRect(-sz,-sz*0.3,sz*2,sz*0.6);
+      x.fillRect(-sz*0.3,-sz,sz*0.6,sz*2); break;
+    case 'ring':
+      x.beginPath(); x.arc(0,0,sz,0,Math.PI*2);
+      x.lineWidth = sz*0.3; x.stroke(); break;
+    case 'line':
+      x.lineWidth = Math.max(1, sz*0.4);
+      x.beginPath(); x.moveTo(-sz,0); x.lineTo(sz,0); x.stroke(); break;
+  }
+  x.restore();
+}
+
+// ── Color helpers ──────────────────────────
+function hexToRgb(hex) {
+  // handles #rgb, #rrggbb, and named/unknown (fallback white)
+  hex = hex.trim();
+  if (hex.startsWith('#')) {
+    let h = hex.slice(1);
+    if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    const n = parseInt(h.slice(0,6), 16);
+    return [(n>>16)&255, (n>>8)&255, n&255];
+  }
+  // fallback: parse via canvas (works for any CSS color incl. hsl)
+  const tmp = document.createElement('canvas');
+  tmp.width = tmp.height = 1;
+  const tc = tmp.getContext('2d');
+  tc.fillStyle = hex;
+  tc.fillRect(0,0,1,1);
+  const d = tc.getImageData(0,0,1,1).data;
+  return [d[0], d[1], d[2]];
+}
+
+function hslToRgb(h, s, l) {
+  h = h / 360;
+  const q = l < 0.5 ? l*(1+s) : l+s-l*s;
+  const p = 2*l-q;
+  const hue2rgb = (p, q, t) => {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1/6) return p+(q-p)*6*t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p+(q-p)*(2/3-t)*6;
+    return p;
+  };
+  return [
+    Math.round(hue2rgb(p,q,h+1/3)*255),
+    Math.round(hue2rgb(p,q,h)*255),
+    Math.round(hue2rgb(p,q,h-1/3)*255)
+  ];
+}
+
+// Simple noise
+function simplex(x, y) {
+  return Math.sin(x*1.3+y*0.7)*Math.cos(y*1.1-x*0.5)*Math.sin((x+y)*0.6);
+}
+
+function initParticles() {
+  particles = [];
+  const n = (params.motion === 'retro_grid' || params.motion === 'retro_horizon') ? 0 : params.count;
+  for (let i=0; i<n; i++) particles.push(new Particle());
+  document.getElementById('sPart').textContent = n;
+}
+
+// ═══════════════════════════════════════════
+//  MAIN LOOP
+// ═══════════════════════════════════════════
+function loop(ts) {
+  animId = requestAnimationFrame(loop);
+  if (!isPlaying) return;
+
+  // FPS calc
+  fpsFrames++;
+  if (ts - lastFPSTime > 500) {
+    liveFPS = Math.round(fpsFrames / ((ts - lastFPSTime) / 1000));
+    document.getElementById('sFPS').textContent = liveFPS;
+    fpsFrames = 0; lastFPSTime = ts;
+  }
+  frameCount++;
+  document.getElementById('frameHud').textContent = `frame ${frameCount}`;
+
+  // Timer
+  const elapsed = frameCount / 60;
+  const m = Math.floor(elapsed/60), s2 = Math.floor(elapsed%60);
+  document.getElementById('timerHud').textContent = `${String(m).padStart(2,'0')}:${String(s2).padStart(2,'0')}`;
+
+  render(ctx, W, H);
+}
+
+function render(x, w, h) {
+  const isKaleido = params.motion === 'kaleido' || params.motion === 'kaleido_burst';
+  const isRetroGrid = params.motion === 'retro_grid';
+  const isRetroHorizon = params.motion === 'retro_horizon';
+
+  // Background
+  if (params.effects.trail) {
+    x.globalAlpha = isKaleido ? 0.08 : 0.15;
+    x.fillStyle = params.bgColor;
+    x.fillRect(0, 0, w, h);
+    x.globalAlpha = 1;
+  } else {
+    x.fillStyle = params.bgColor;
+    x.fillRect(0, 0, w, h);
+  }
+
+  // ── RETRO GRID (Synthwave) ──────────────────
+  if (isRetroGrid) {
+    renderRetroGrid(x, w, h); return;
+  }
+  // ── RETRO HORIZON (80s) ─────────────────────
+  if (isRetroHorizon) {
+    renderRetroHorizon(x, w, h); return;
+  }
+
+  // ── KALEIDOSCOPE mirror render ──────────────
+  if (isKaleido) {
+    const symmetry = 8; // 8-fold mirror
+    const cx = w / 2, cy = h / 2;
+
+    // Update particles first to get positions
+    particles.forEach(p => p.update());
+
+    for (let seg = 0; seg < symmetry; seg++) {
+      const angle = (seg / symmetry) * Math.PI * 2;
+      x.save();
+      x.translate(cx, cy);
+      x.rotate(angle);
+      if (seg % 2 === 1) x.scale(1, -1); // mirror every other slice
+      particles.forEach(p => {
+        const dx = p.x - cx, dy = p.y - cy;
+        x.globalAlpha = p.alpha * 0.9;
+        if (params.blur > 0) { x.shadowBlur = params.blur * 2; x.shadowColor = p.color; }
+        x.fillStyle = p.color;
+        x.strokeStyle = p.color;
+        drawShape(x, dx, dy, p.size, p.angle, params.shape);
+        x.shadowBlur = 0;
+      });
+      x.restore();
+    }
+    x.globalAlpha = 1;
+    return;
+  }
+
+  // ── STANDARD render ─────────────────────────
+  // Connect lines
+  if (params.effects.connect) {
+    const maxDist = w * 0.12;
+    x.globalAlpha = 0.15;
+    for (let i=0;i<particles.length;i++) {
+      for (let j=i+1;j<particles.length;j++) {
+        const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if (d < maxDist) {
+          x.strokeStyle = particles[i].color;
+          x.lineWidth = 1 * (1 - d/maxDist);
+          x.beginPath();
+          x.moveTo(particles[i].x, particles[i].y);
+          x.lineTo(particles[j].x, particles[j].y);
+          x.stroke();
+        }
+      }
+    }
+    x.globalAlpha = 1;
+  }
+
+  // Update & draw particles
+  particles.forEach(p => { p.update(); p.draw(x); });
+  x.globalAlpha = 1;
+}
+
+// ── RETRO GRID renderer ──────────────────────
+function renderRetroGrid(x, w, h) {
+  const t = frameCount * 0.012 * params.speed;
+  const col1 = params.colors[0] || '#ff2079';
+  const col2 = params.colors[1] || '#7c3aff';
+  const col3 = params.colors[2] || '#00f5c4';
+  const [r1,g1,b1] = hexToRgb(col1);
+  const [r2,g2,b2] = hexToRgb(col2);
+
+  // Sky gradient
+  const sky = x.createLinearGradient(0, 0, 0, h * 0.55);
+  sky.addColorStop(0, params.bgColor);
+  sky.addColorStop(1, `rgba(${r2},${g2},${b2},0.4)`);
+  x.fillStyle = sky;
+  x.fillRect(0, 0, w, h * 0.55);
+
+  // Horizon glow
+  x.save();
+  const horizY = h * 0.55;
+  const hglow = x.createRadialGradient(w/2, horizY, 0, w/2, horizY, w * 0.6);
+  hglow.addColorStop(0, `rgba(${r1},${g1},${b1},0.9)`);
+  hglow.addColorStop(0.3, `rgba(${r1},${g1},${b1},0.3)`);
+  hglow.addColorStop(1, `rgba(${r1},${g1},${b1},0)`);
+  x.fillStyle = hglow;
+  x.fillRect(0, horizY - h*0.1, w, h * 0.2);
+  x.restore();
+
+  // Grid floor — perspective lines
+  x.save();
+  x.strokeStyle = col1;
+  x.lineWidth = 1.5;
+
+  const vLines = 20;
+  const hLines = 12;
+  const vp = { x: w/2, y: horizY }; // vanishing point
+
+  // Horizontal grid lines (moving toward viewer)
+  for (let i = 0; i < hLines; i++) {
+    const progress = ((i / hLines) + t) % 1;
+    const ease = Math.pow(progress, 2);
+    const y = horizY + ease * (h - horizY);
+    const xSpread = ease * w * 0.6;
+    const alpha = ease * 0.8;
+    x.globalAlpha = alpha;
+    x.beginPath();
+    x.moveTo(w/2 - xSpread, y);
+    x.lineTo(w/2 + xSpread, y);
+    x.stroke();
+  }
+
+  // Vertical perspective lines
+  x.globalAlpha = 0.5;
+  for (let i = 0; i <= vLines; i++) {
+    const fx = (i / vLines) - 0.5;
+    x.beginPath();
+    x.moveTo(vp.x, vp.y);
+    x.lineTo(w/2 + fx * w, h);
+    x.stroke();
+  }
+  x.restore();
+
+  // Sun / circle
+  x.save();
+  const sunR = w * 0.08;
+  const sunY = horizY - sunR * 0.3;
+  const sunGrad = x.createLinearGradient(w/2, sunY - sunR, w/2, sunY + sunR);
+  sunGrad.addColorStop(0, col3);
+  sunGrad.addColorStop(0.5, col1);
+  sunGrad.addColorStop(1, col2);
+  x.fillStyle = sunGrad;
+  x.shadowBlur = 40; x.shadowColor = col1;
+  x.beginPath(); x.arc(w/2, sunY, sunR, 0, Math.PI*2); x.fill();
+  // Scan lines on sun
+  x.globalAlpha = 0.4;
+  x.fillStyle = params.bgColor;
+  for (let i = -sunR; i < sunR; i += 6) {
+    x.fillRect(w/2 - sunR, sunY + i, sunR*2, 3);
+  }
+  x.restore();
+
+  x.globalAlpha = 1;
+}
+
+// ── RETRO HORIZON renderer ───────────────────
+function renderRetroHorizon(x, w, h) {
+  const t = frameCount * 0.008 * params.speed;
+  const col1 = params.colors[0] || '#ff2079';
+  const col2 = params.colors[1] || '#ff6b35';
+  const col3 = params.colors[2] || '#ffee00';
+  const [r1,g1,b1] = hexToRgb(col1);
+  const [r2,g2,b2] = hexToRgb(col2);
+  const [r3,g3,b3] = hexToRgb(col3);
+
+  // Background gradient
+  const bg = x.createLinearGradient(0,0,0,h);
+  bg.addColorStop(0, params.bgColor);
+  bg.addColorStop(0.5, `rgba(${r2},${g2},${b2},0.15)`);
+  bg.addColorStop(1, `rgba(${r1},${g1},${b1},0.25)`);
+  x.fillStyle = bg; x.fillRect(0,0,w,h);
+
+  const horizY = h * 0.52;
+
+  // Mountain silhouette
+  x.save();
+  x.fillStyle = `rgba(${r1},${g1},${b1},0.18)`;
+  x.beginPath(); x.moveTo(0, horizY);
+  for (let mx = 0; mx <= w; mx += w/30) {
+    const my = horizY - Math.abs(Math.sin(mx * 0.008 + t * 0.5) * h * 0.15 +
+               Math.sin(mx * 0.015 + t * 0.3) * h * 0.08);
+    mx === 0 ? x.moveTo(mx, my) : x.lineTo(mx, my);
+  }
+  x.lineTo(w, horizY); x.closePath(); x.fill();
+  x.restore();
+
+  // Horizon glow line
+  x.save();
+  x.strokeStyle = col3;
+  x.lineWidth = 2;
+  x.shadowBlur = 20; x.shadowColor = col3;
+  x.globalAlpha = 0.9;
+  x.beginPath(); x.moveTo(0, horizY); x.lineTo(w, horizY); x.stroke();
+  x.restore();
+
+  // Stars
+  x.save();
+  for (let s = 0; s < 80; s++) {
+    const sx = ((s * 137.5 + t * 10) % w);
+    const sy = (s * 79.3) % (horizY * 0.9);
+    const ss = (Math.sin(s + t * 2) * 0.5 + 1) * 1.5;
+    x.globalAlpha = 0.4 + Math.sin(s * 2.1 + t) * 0.3;
+    x.fillStyle = col3;
+    x.beginPath(); x.arc(sx, sy, ss, 0, Math.PI*2); x.fill();
+  }
+  x.restore();
+
+  // Neon grid lines moving
+  x.save();
+  x.lineWidth = 1;
+  const gridCols = 16, gridRows = 10;
+  for (let row = 0; row <= gridRows; row++) {
+    const progress = ((row / gridRows) + t) % 1;
+    const ease = Math.pow(progress, 1.8);
+    const y = horizY + ease * (h - horizY);
+    const spread = ease * w * 0.55;
+    x.globalAlpha = ease * 0.7;
+    x.strokeStyle = row % 3 === 0 ? col1 : col2;
+    x.shadowBlur = 6; x.shadowColor = col1;
+    x.beginPath(); x.moveTo(w/2-spread, y); x.lineTo(w/2+spread, y); x.stroke();
+  }
+  for (let col = 0; col <= gridCols; col++) {
+    const fx = (col/gridCols) - 0.5;
+    x.globalAlpha = 0.35;
+    x.strokeStyle = col1;
+    x.beginPath(); x.moveTo(w/2, horizY); x.lineTo(w/2 + fx*w, h); x.stroke();
+  }
+  x.restore();
+
+  // Floating neon orbs
+  for (let i=0; i<particles.length; i++) {
+    particles[i].update();
+    particles[i].draw(x);
+  }
+  x.globalAlpha = 1;
+}
+
+// ═══════════════════════════════════════════
+//  CONTROLS
+// ═══════════════════════════════════════════
+function togglePlay() {
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('playPauseBtn');
+  btn.textContent = isPlaying ? '⏸' : '▶';
+  btn.classList.toggle('active', isPlaying);
+}
+function restartAnim() { frameCount = 0; initParticles(); }
+function toggleFullscreen() {
+  if (!document.fullscreenElement) canvas.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+function updateParam(type, val) {
+  val = parseFloat(val);
+  switch(type) {
+    case 'count':
+      params.count = Math.round(val);
+      document.getElementById('countVal').textContent = params.count;
+      document.getElementById('sPart').textContent = params.count;
+      initParticles(); break;
+    case 'speed':
+      params.speed = +(val/10).toFixed(1);
+      document.getElementById('speedVal').textContent = params.speed.toFixed(1); break;
+    case 'size':
+      params.size = +(val/2).toFixed(1);
+      document.getElementById('sizeVal').textContent = params.size;
+      initParticles(); break;
+    case 'opacity':
+      params.opacity = +(val/10).toFixed(1);
+      document.getElementById('opacityVal').textContent = params.opacity.toFixed(1); break;
+    case 'blur':
+      params.blur = Math.round(val);
+      document.getElementById('blurVal').textContent = params.blur; break;
+  }
+}
+
+function toggleEffect(btn) {
+  const eff = btn.dataset.effect;
+  params.effects[eff] = !params.effects[eff];
+  btn.classList.toggle('on', params.effects[eff]);
+}
+function updateMotion(v) { params.motion = v; initParticles(); }
+function updateShape(v) { params.shape = v; }
+function updateBgColor(v) { params.bgColor = v; }
+function updateFPS(v) {
+  fps = parseInt(v);
+  document.getElementById('fpsHud').textContent = fps + ' FPS';
+}
+function updateResolution(v) {
+  [RW, RH] = v.split('x').map(Number);
+  document.getElementById('resHud').textContent = `${RW}×${RH}`;
+  const lbl = RH>=2160?'4K':RH>=1440?'QHD':RH>=1080?'1080p':RH>=720?'720p':`${RH}p`;
+  document.getElementById('sRes').textContent = lbl;
+  resizeCanvas();
+}
+function setDuration(d) {
+  duration = d;
+  document.getElementById('sDur').textContent = d + 's';
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function randomize() {
+  const p = PRESETS_FLAT[Math.floor(Math.random()*PRESETS_FLAT.length)];
+  applyPreset(p);
+  params.count = 50 + Math.floor(Math.random()*400);
+  params.speed = 0.2 + Math.random()*3;
+  params.size = 1 + Math.random()*10;
+  document.getElementById('countSlider').value = params.count;
+  document.getElementById('countVal').textContent = params.count;
+  document.getElementById('speedSlider').value = params.speed*10;
+  document.getElementById('speedVal').textContent = params.speed.toFixed(1);
+  document.getElementById('sizeSlider').value = params.size*2;
+  document.getElementById('sizeVal').textContent = params.size.toFixed(1);
+  initParticles();
+  showToast('🎲 Randomized!');
+}
+
+// ═══════════════════════════════════════════
+//  RECORDING (MediaRecorder)
+// ═══════════════════════════════════════════
+function startRecord() {
+  if (isRecording) {
+    stopRecord();
+    return;
+  }
+  isRecording = true;
+  recordedChunks = [];
+  const btn = document.getElementById('recBtn');
+  btn.textContent = '⏹ Stop';
+  btn.style.background = '#ff4466';
+  document.getElementById('recHud').style.display = '';
+
+  const stream = canvas.captureStream(fps);
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9' : 'video/webm';
+  mediaRecorder = new MediaRecorder(stream, {
+    mimeType,
+    videoBitsPerSecond: RW >= 3840 ? 50_000_000 : RW >= 1920 ? 20_000_000 : 8_000_000
+  });
+  mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = downloadRecording;
+  mediaRecorder.start(100);
+  showToast('🔴 Recording started…');
+
+  // Auto stop
+  setTimeout(() => { if(isRecording) stopRecord(); }, duration * 1000);
+}
+
+function stopRecord() {
+  if (!mediaRecorder) return;
+  isRecording = false;
+  mediaRecorder.stop();
+  const btn = document.getElementById('recBtn');
+  btn.textContent = '⏺ Record';
+  btn.style.background = '';
+  document.getElementById('recHud').style.display = 'none';
+}
+
+function downloadRecording() {
+  const blob = new Blob(recordedChunks, { type: 'video/webm' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `motionforge_${params.preset}_${Date.now()}.webm`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`✅ Saved! Convert to MP4 with FFmpeg.`);
+}
+
+// ═══════════════════════════════════════════
+//  EXPORT (Offline render — high quality)
+// ═══════════════════════════════════════════
+async function exportVideo() {
+  const btn = document.getElementById('exportBtn');
+  btn.disabled = true;
+
+  const prog = document.getElementById('progressOuter');
+  const bar = document.getElementById('progressBar');
+  const txt = document.getElementById('progressText');
+  prog.style.display = 'block';
+  bar.style.width = '0%';
+  txt.textContent = 'Preparing high-res render...';
+
+  const ec = document.getElementById('exportCanvas');
+  ec.width = RW; ec.height = RH;
+  const ex = ec.getContext('2d');
+
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9' : 'video/webm';
+  const stream = ec.captureStream(fps);
+  const mr = new MediaRecorder(stream, {
+    mimeType,
+    videoBitsPerSecond: RW >= 3840 ? 60_000_000 : RW >= 1920 ? 25_000_000 : 10_000_000
+  });
+  const chunks = [];
+  mr.ondataavailable = e => { if(e.data.size>0) chunks.push(e.data); };
+  mr.onstop = () => {
+    const blob = new Blob(chunks, { type:'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `motionforge_${params.preset}_${RW}x${RH}_${duration}s.webm`;
+    a.click();
+    URL.revokeObjectURL(url);
+    prog.style.display = 'none';
+    btn.disabled = false;
+    showToast('✅ Exported! Use FFmpeg to convert to MP4.');
+  };
+
+  // Scale params for high-res
+  const scaleX = RW / W, scaleY = RH / H;
+
+  // Save particle positions, render at full res
+  const savedParticles = particles.map(p => ({x:p.x*scaleX, y:p.y*scaleY, ...p}));
+
+  mr.start(100);
+  const totalFrames = duration * fps;
+
+  // Reinit for export
+  const exportParticles = [];
+  for (let i=0;i<params.count;i++) {
+    const p = new Particle();
+    p.x *= scaleX; p.y *= scaleY;
+    p.vx *= scaleX; p.vy *= scaleY;
+    p.size *= (RW/W);
+    exportParticles.push(p);
+  }
+
+  const oldW = W, oldH = H;
+  W = RW; H = RH;
+  const oldParticles = particles;
+  particles = exportParticles;
+  frameCount = 0;
+
+  txt.textContent = `Rendering ${totalFrames} frames at ${RW}×${RH}…`;
+
+  for (let f=0; f<totalFrames; f++) {
+    frameCount = f;
+    particles.forEach(p => p.update());
+    render(ex, RW, RH);
+    const pct = ((f+1)/totalFrames*100).toFixed(0);
+    bar.style.width = pct + '%';
+    txt.textContent = `Frame ${f+1}/${totalFrames} — ${pct}%`;
+    await new Promise(r => setTimeout(r, 1000/fps));
+  }
+
+  W = oldW; H = oldH;
+  particles = oldParticles;
+  frameCount = 0;
+
+  mr.stop();
+}
+
+// ═══════════════════════════════════════════
+//  SCREENSHOT
+// ═══════════════════════════════════════════
+function takeScreenshot() {
+  const ec = document.getElementById('exportCanvas');
+  ec.width = RW; ec.height = RH;
+  const ex = ec.getContext('2d');
+  const sx = RW/W, sy = RH/H;
+  ex.fillStyle = params.bgColor;
+  ex.fillRect(0,0,RW,RH);
+  ex.save();
+  ex.scale(sx, sy);
+  render(ex, W, H);
+  ex.restore();
+  const a = document.createElement('a');
+  a.href = ec.toDataURL('image/png');
+  a.download = `motionforge_screenshot_${Date.now()}.png`;
+  a.click();
+  showToast('📷 Screenshot saved!');
+}
+
+// ═══════════════════════════════════════════
+//  GIF (simple: just download screenshot)
+// ═══════════════════════════════════════════
+function exportGIF() {
+  showToast('💡 Tip: Record as WebM, convert to GIF with ezgif.com');
+  takeScreenshot();
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer;
+function showToast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('err', err);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>

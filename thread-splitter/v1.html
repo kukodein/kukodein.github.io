@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thread Splitter</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: #e2e0d8;
+    --border-focus: #a09e96;
+    --text: #1a1916;
+    --text-muted: #7a7870;
+    --accent: #2d2c2a;
+    --green: #2d6a4f;
+    --green-bg: #d8f3dc;
+    --tag-bg: #eceae4;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 64px;
+  }
+
+  header {
+    max-width: 1200px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 30px; height: 30px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-icon svg { display: block; }
+
+  .header-text h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-text p  { font-size: 12.5px; color: var(--text-muted); }
+
+  /* 2-column layout */
+  .workspace {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .panel-left {
+    position: sticky;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .panel-right { min-width: 0; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+
+  .card-label {
+    font-size: 10.5px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  /* Platform */
+  .platform-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .platform-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    background: transparent;
+    font-family: var(--sans); font-size: 12.5px; font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .platform-btn:hover { border-color: var(--border-focus); color: var(--text); }
+  .platform-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .platform-icon { width: 13px; height: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  .char-limit-tag {
+    font-family: var(--mono); font-size: 11px;
+    background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 4px;
+  }
+  .platform-btn:not(.active) .char-limit-tag { background: var(--tag-bg); color: var(--text-muted); }
+
+  .custom-input-row {
+    display: none; align-items: center; gap: 8px; margin-top: 10px;
+  }
+  .custom-input-row.visible { display: flex; }
+  .custom-input-row label { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
+  .custom-input-row input {
+    width: 80px; padding: 5px 9px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-family: var(--mono); font-size: 13px; color: var(--text); background: var(--surface);
+    outline: none; transition: border-color 0.15s;
+  }
+  .custom-input-row input:focus { border-color: var(--border-focus); }
+
+  /* Toggle */
+  .toggle-wrap {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; user-select: none;
+  }
+  .toggle-wrap input { display: none; }
+  .toggle-track {
+    width: 34px; height: 19px; background: var(--border);
+    border-radius: 100px; position: relative; transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle-track::after {
+    content: ''; position: absolute; top: 2.5px; left: 2.5px;
+    width: 14px; height: 14px; background: #fff; border-radius: 50%;
+    transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-wrap input:checked + .toggle-track { background: var(--accent); }
+  .toggle-wrap input:checked + .toggle-track::after { transform: translateX(15px); }
+  .toggle-label { font-size: 13px; color: var(--text); }
+
+  .position-select { display: none; align-items: center; gap: 6px; }
+  .position-select.visible { display: flex; }
+
+  /* Numbering expanded options */
+  .numbering-options {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .numbering-options.visible { display: flex; }
+
+  .num-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .num-row-label {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    min-width: 44px;
+    flex-shrink: 0;
+  }
+
+  .format-presets { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  .fmt-btn {
+    padding: 3px 9px;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .fmt-btn:hover { border-color: var(--border-focus); color: var(--text); }
+  .fmt-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+  #customFormat {
+    flex: 1;
+    min-width: 0;
+    padding: 5px 9px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  #customFormat:focus { border-color: var(--border-focus); }
+  #customFormat::placeholder { color: #c0bdb4; font-family: var(--sans); font-size: 12px; }
+
+  .num-row-hint {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    padding-left: 52px;
+  }
+  .num-row-hint code {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--tag-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .num-preview {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 5px 10px;
+    font-family: var(--mono);
+  }
+  .num-preview strong { color: var(--accent); }
+
+  .pos-btn {
+    padding: 4px 10px; border: 1.5px solid var(--border); border-radius: 100px;
+    background: transparent; font-family: var(--sans); font-size: 12px; font-weight: 500;
+    color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+  }
+  .pos-btn:hover { border-color: var(--border-focus); color: var(--text); }
+  .pos-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+  /* Textarea */
+  textarea {
+    width: 100%; min-height: 220px; padding: 12px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-family: var(--sans); font-size: 13.5px; line-height: 1.65;
+    color: var(--text); background: var(--surface); resize: vertical;
+    outline: none; transition: border-color 0.15s;
+  }
+  textarea:focus { border-color: var(--border-focus); }
+  textarea::placeholder { color: #c0bdb4; }
+
+  .textarea-footer {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 8px;
+  }
+  .char-count { font-family: var(--mono); font-size: 11.5px; color: var(--text-muted); }
+
+  .clear-btn {
+    padding: 4px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    background: transparent; font-family: var(--sans); font-size: 12px;
+    color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+  }
+  .clear-btn:hover { border-color: var(--border-focus); color: var(--text); }
+
+  /* Empty state */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 300px; color: var(--text-muted); text-align: center; gap: 10px;
+    background: var(--surface); border: 1.5px dashed var(--border); border-radius: var(--radius);
+    padding: 40px 24px;
+  }
+  .empty-state svg { opacity: 0.3; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+
+  /* Results */
+  #results { display: none; }
+
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; gap: 10px;
+  }
+  .results-meta { font-size: 12.5px; color: var(--text-muted); }
+  .results-meta strong { color: var(--text); font-weight: 600; }
+
+  .copy-all-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 13px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface); font-family: var(--sans); font-size: 12.5px; font-weight: 500;
+    color: var(--text); cursor: pointer; transition: all 0.15s;
+  }
+  .copy-all-btn:hover { border-color: var(--border-focus); }
+  .copy-all-btn.copied { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+
+  .warning {
+    background: #fff8e6; border: 1px solid #f0d070; border-radius: var(--radius-sm);
+    padding: 9px 13px; font-size: 12.5px; color: #7a5c00; margin-bottom: 12px; display: none;
+  }
+  .warning.visible { display: block; }
+
+  /* Post cards */
+  .post-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 10px; overflow: hidden;
+    animation: fadeUp 0.18s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .post-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .post-num { font-family: var(--mono); font-size: 11.5px; color: var(--text-muted); font-weight: 500; }
+  .post-actions { display: flex; align-items: center; gap: 8px; }
+  .post-char { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .post-char.over { color: #c0392b; font-weight: 600; }
+
+  .copy-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border: 1.5px solid var(--border); border-radius: 5px;
+    background: var(--surface); font-family: var(--sans); font-size: 12px; font-weight: 500;
+    color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+    white-space: nowrap; min-width: 70px; justify-content: center;
+  }
+  .copy-btn:hover { border-color: var(--border-focus); color: var(--text); }
+  .copy-btn.copied { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+
+  .post-body {
+    padding: 12px 14px; font-size: 13.5px; line-height: 1.7;
+    color: var(--text); white-space: pre-wrap; word-break: break-word;
+  }
+
+  @media (max-width: 780px) {
+    .workspace { grid-template-columns: 1fr; }
+    .panel-left { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <rect x="2" y="2" width="12" height="3" rx="1.5" fill="white"/>
+      <rect x="2" y="6.5" width="8" height="3" rx="1.5" fill="white" opacity="0.6"/>
+      <rect x="2" y="11" width="10" height="3" rx="1.5" fill="white" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="header-text">
+    <h1>Thread Splitter</h1>
+    <p>Potong teks panjang jadi beberapa post — tanpa memotong kata.</p>
+  </div>
+</header>
+
+<div class="workspace">
+
+  <!-- LEFT -->
+  <div class="panel-left">
+
+    <div class="card">
+      <div class="card-label">Platform</div>
+      <div class="platform-row">
+        <button class="platform-btn active" data-platform="twitter" onclick="setPlatform(this)">
+          <span class="platform-icon">
+            <svg width="12" height="12" viewBox="0 0 300 300" fill="currentColor">
+              <path d="M178.57 127.15 290.27 0h-26.46l-97.03 110.38L89.34 0H0l117.13 166.93L0 300.25h26.46l102.4-116.59 81.8 116.59h89.34M36.01 19.54H76.66l187.13 262.13h-40.66"/>
+            </svg>
+          </span>
+          Twitter / X <span class="char-limit-tag">280</span>
+        </button>
+        <button class="platform-btn" data-platform="threads" onclick="setPlatform(this)">
+          <span class="platform-icon">
+            <svg width="12" height="12" viewBox="0 0 192 192" fill="currentColor">
+              <path d="M141.537 88.988a66.667 66.667 0 0 0-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.502 7.13 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.243-15.224-1.626-23.68-1.14-23.82 1.371-39.134 15.264-38.105 34.568.522 9.792 5.4 18.216 13.735 23.719 7.047 4.652 16.124 6.927 25.557 6.412 12.458-.683 22.231-5.436 29.049-14.127 5.178-6.6 8.453-15.153 9.899-25.93 5.937 3.583 10.337 8.298 12.767 13.966 4.132 9.635 4.373 25.468-8.546 38.376-11.319 11.308-24.925 16.2-45.488 16.351-22.809-.169-40.06-7.484-51.275-21.742C35.236 139.966 29.808 120.682 29.605 96c.203-24.682 5.63-43.966 16.133-57.317C56.954 24.425 74.204 17.11 97.013 16.94c22.975.17 40.526 7.52 52.171 21.847 5.71 7.026 10.015 15.86 12.853 26.162l16.147-4.308c-3.44-12.68-8.853-23.606-16.219-32.668C147.036 10.606 125.202 1.195 97.07 1L96.99 1h-.071C68.956 1.195 47.363 10.607 32.886 28.093 19.99 43.64 13.206 65.552 13.001 95.974L13 96v.026c.206 30.422 6.989 52.334 19.885 67.882 14.477 17.486 36.07 26.898 64.135 27.093h.071c24.563-.169 41.923-6.606 56.082-20.753 18.011-18 17.272-40.497 11.418-54.319-4.197-9.768-12.224-17.7-23.054-22.921ZM96.678 135.857c-10.428.583-21.287-4.1-21.818-14.135-.396-7.44 5.276-15.735 22.387-16.712 1.957-.113 3.886-.169 5.79-.169 6.195 0 11.99.601 17.28 1.745-1.964 24.36-13.069 28.665-23.639 29.271Z"/>
+            </svg>
+          </span>
+          Threads <span class="char-limit-tag">500</span>
+        </button>
+        <button class="platform-btn" data-platform="custom" onclick="setPlatform(this)">Custom</button>
+      </div>
+      <div class="custom-input-row" id="customRow">
+        <label>Maks. karakter:</label>
+        <input type="number" id="customLimit" value="300" min="50" max="10000" oninput="onSettingChange()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Numbering Post</div>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="numberingToggle" onchange="onSettingChange()">
+        <div class="toggle-track"></div>
+        <span class="toggle-label">Tampilkan nomor post</span>
+      </label>
+
+      <div class="numbering-options" id="numberingOptions">
+        <!-- Format template -->
+        <div class="num-row">
+          <span class="num-row-label">Format</span>
+          <div class="format-presets">
+            <button class="fmt-btn active" data-fmt="{n}/{t}" onclick="setFormat(this)">{n}/{t}</button>
+            <button class="fmt-btn" data-fmt="({n}/{t})" onclick="setFormat(this)">({n}/{t})</button>
+            <button class="fmt-btn" data-fmt="[{n}/{t}]" onclick="setFormat(this)">[{n}/{t}]</button>
+            <button class="fmt-btn" data-fmt="{n}." onclick="setFormat(this)">{n}.</button>
+            <button class="fmt-btn" data-fmt="#{n}" onclick="setFormat(this)">#{n}</button>
+          </div>
+        </div>
+        <div class="num-row">
+          <span class="num-row-label">Custom</span>
+          <input type="text" id="customFormat" placeholder="mis. ({n} of {t}) 🧵" oninput="onFormatInput()" spellcheck="false">
+        </div>
+        <div class="num-row-hint">
+          Gunakan <code>{n}</code> = nomor post, <code>{t}</code> = total post
+        </div>
+        <!-- Preview -->
+        <div class="num-preview" id="numPreview">Preview: <strong>1/8</strong></div>
+
+        <!-- Position -->
+        <div class="num-row" style="margin-top:8px">
+          <span class="num-row-label">Posisi</span>
+          <div class="position-select visible" id="positionSelect">
+            <button class="pos-btn active" data-pos="start" onclick="setPosition(this)">Awal</button>
+            <button class="pos-btn" data-pos="end" onclick="setPosition(this)">Akhir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Teks / Artikel</div>
+      <textarea id="inputText" placeholder="Tulis atau paste teks di sini..." oninput="onTextInput()"></textarea>
+      <div class="textarea-footer">
+        <span class="char-count" id="charCount">0 karakter</span>
+        <button class="clear-btn" onclick="clearText()">Hapus</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel-right">
+
+    <div class="empty-state" id="emptyState">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="10" width="12" height="4" rx="1"/><rect x="3" y="17" width="14" height="4" rx="1"/>
+      </svg>
+      <p>Hasil potongan akan muncul di sini.<br>Mulai ketik atau paste teks di sebelah kiri.</p>
+    </div>
+
+    <div id="results">
+      <div class="warning" id="warningBox"></div>
+      <div class="results-header">
+        <div class="results-meta" id="resultsMeta"></div>
+        <button class="copy-all-btn" id="copyAllBtn" onclick="copyAll()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy Semua
+        </button>
+      </div>
+      <div id="postList"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const LIMITS = { twitter: 280, threads: 500 };
+  let currentPlatform = 'twitter';
+  let currentLimit = 280;
+  let numberingOn = false;
+  let numberingPos = 'start';
+  let numberingFormat = '{n}/{t}'; // active format template
+  let debounceTimer = null;
+
+  const copyIcon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+  const checkIcon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const copyAllIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+
+  // Resolve a format string: replace {n} and {t}
+  function resolveNum(fmt, n, t) {
+    return fmt.replace(/\{n\}/g, n).replace(/\{t\}/g, t);
+  }
+
+  function updatePreview() {
+    const preview = resolveNum(numberingFormat, 1, 8);
+    document.getElementById('numPreview').innerHTML = `Preview: <strong>${escapeHtml(preview)}</strong>`;
+  }
+
+  function setPlatform(btn) {
+    document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPlatform = btn.dataset.platform;
+    const customRow = document.getElementById('customRow');
+    if (currentPlatform === 'custom') {
+      customRow.classList.add('visible');
+      currentLimit = parseInt(document.getElementById('customLimit').value) || 300;
+    } else {
+      customRow.classList.remove('visible');
+      currentLimit = LIMITS[currentPlatform];
+    }
+    triggerSplit();
+  }
+
+  function setPosition(btn) {
+    document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    numberingPos = btn.dataset.pos;
+    triggerSplit();
+  }
+
+  function setFormat(btn) {
+    document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    numberingFormat = btn.dataset.fmt;
+    // Clear custom input when a preset is picked
+    document.getElementById('customFormat').value = '';
+    updatePreview();
+    triggerSplit();
+  }
+
+  function onFormatInput() {
+    const val = document.getElementById('customFormat').value;
+    if (val.trim()) {
+      // Deselect presets
+      document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+      numberingFormat = val;
+    } else {
+      // Revert to first preset
+      const first = document.querySelector('.fmt-btn');
+      first.classList.add('active');
+      numberingFormat = first.dataset.fmt;
+    }
+    updatePreview();
+    triggerSplit();
+  }
+
+  function onSettingChange() {
+    numberingOn = document.getElementById('numberingToggle').checked;
+    const opts = document.getElementById('numberingOptions');
+    numberingOn ? opts.classList.add('visible') : opts.classList.remove('visible');
+    if (currentPlatform === 'custom') {
+      currentLimit = parseInt(document.getElementById('customLimit').value) || 300;
+    }
+    triggerSplit();
+  }
+
+  function onTextInput() {
+    const len = document.getElementById('inputText').value.length;
+    document.getElementById('charCount').textContent = len.toLocaleString('id') + ' karakter';
+    triggerSplit();
+  }
+
+  function clearText() {
+    document.getElementById('inputText').value = '';
+    document.getElementById('charCount').textContent = '0 karakter';
+    document.getElementById('emptyState').style.display = '';
+    document.getElementById('results').style.display = 'none';
+  }
+
+  function triggerSplit() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(splitText, 150);
+  }
+
+  // ── Split logic ──────────────────────────────────────────────────────────────
+  // Preserves line breaks: a \n in input will survive into the post it lands in.
+  // Never cuts mid-word. Tries to keep paragraphs together in the same post.
+
+  function splitText() {
+    const rawText = document.getElementById('inputText').value;
+
+    if (!rawText.trim()) {
+      document.getElementById('emptyState').style.display = '';
+      document.getElementById('results').style.display = 'none';
+      return;
+    }
+
+    if (currentPlatform === 'custom') {
+      currentLimit = parseInt(document.getElementById('customLimit').value) || 300;
+    }
+
+    const lim = currentLimit;
+
+    // We process the text token-by-token where tokens are either words or '\n'.
+    // This lets us respect line-breaks fully.
+    const tokens = [];
+    const rawLines = rawText.split('\n');
+    rawLines.forEach((line, li) => {
+      const words = line.split(' ').filter(w => w !== '');
+      words.forEach(w => tokens.push({ type: 'word', value: w }));
+      if (li < rawLines.length - 1) tokens.push({ type: 'newline' });
+    });
+
+    const rawPosts = [];
+    let current = ''; // current accumulator
+
+    for (let ti = 0; ti < tokens.length; ti++) {
+      const tok = tokens[ti];
+
+      if (tok.type === 'newline') {
+        // Try appending a newline
+        if ((current + '\n').length <= lim) {
+          current = current + '\n';
+        } else {
+          // Flush and start fresh (newline goes to beginning of next post implicitly)
+          if (current.trimEnd()) rawPosts.push(current.trimEnd());
+          current = '';
+        }
+        continue;
+      }
+
+      // word token
+      const word = tok.value;
+
+      // Determine separator to use before this word
+      // If current is empty or ends with \n, no space needed
+      const sep = (current === '' || current.endsWith('\n')) ? '' : ' ';
+      const candidate = current + sep + word;
+
+      if (candidate.length <= lim) {
+        current = candidate;
+      } else {
+        // Word itself longer than limit? force-split
+        if (word.length > lim) {
+          if (current.trimEnd()) rawPosts.push(current.trimEnd());
+          current = '';
+          let rem = word;
+          while (rem.length > lim) {
+            rawPosts.push(rem.slice(0, lim));
+            rem = rem.slice(lim);
+          }
+          current = rem;
+        } else {
+          // Flush current, start new post with this word
+          if (current.trimEnd()) rawPosts.push(current.trimEnd());
+          current = word;
+        }
+      }
+    }
+    if (current.trimEnd()) rawPosts.push(current.trimEnd());
+
+    const total = rawPosts.length;
+
+    // Apply numbering
+    const posts = rawPosts.map((txt, i) => {
+      if (!numberingOn) return txt;
+      const numStr = resolveNum(numberingFormat, i + 1, total);
+      const overhead = numStr.length + 1; // "numStr "
+      const available = lim - overhead;
+      let body = txt;
+      if (body.length > available) {
+        let trimmed = body.slice(0, available);
+        const lastBreak = Math.max(trimmed.lastIndexOf(' '), trimmed.lastIndexOf('\n'));
+        if (lastBreak > 0) trimmed = trimmed.slice(0, lastBreak);
+        body = trimmed;
+      }
+      return numberingPos === 'start'
+        ? `${numStr} ${body.replace(/^\n+/, '')}`
+        : `${body.replace(/\n+$/, '')} ${numStr}`;
+    });
+
+    renderResults(posts);
+  }
+
+  function renderResults(posts) {
+    const total = posts.length;
+    document.getElementById('emptyState').style.display = 'none';
+    const resultsEl = document.getElementById('results');
+    resultsEl.style.display = 'block';
+
+    document.getElementById('resultsMeta').innerHTML =
+      `<strong>${total}</strong> post &nbsp;·&nbsp; limit <span style="font-family:var(--mono)">${currentLimit}</span> karakter`;
+
+    const warnEl = document.getElementById('warningBox');
+    if (total > 20) {
+      warnEl.textContent = `⚠️ Teks menghasilkan ${total} post. Pertimbangkan untuk meringkas.`;
+      warnEl.classList.add('visible');
+    } else {
+      warnEl.classList.remove('visible');
+    }
+
+    const listEl = document.getElementById('postList');
+    listEl.innerHTML = '';
+
+    posts.forEach((post, i) => {
+      const charLen = post.length;
+      const over = charLen > currentLimit;
+      const item = document.createElement('div');
+      item.className = 'post-item';
+      item.style.animationDelay = Math.min(i * 30, 300) + 'ms';
+      item.innerHTML = `
+        <div class="post-header">
+          <span class="post-num">Post ${i + 1} / ${total}</span>
+          <div class="post-actions">
+            <span class="post-char${over ? ' over' : ''}">${charLen} / ${currentLimit}</span>
+            <button class="copy-btn" data-idx="${i}" onclick="copyPost(this)">
+              ${copyIcon} Copy
+            </button>
+          </div>
+        </div>
+        <div class="post-body">${escapeHtml(post)}</div>
+      `;
+      listEl.appendChild(item);
+    });
+
+    window._posts = posts;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function copyPost(btn) {
+    const idx = parseInt(btn.dataset.idx);
+    navigator.clipboard.writeText(window._posts[idx]).then(() => {
+      btn.classList.add('copied');
+      btn.innerHTML = checkIcon + ' Copied';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = copyIcon + ' Copy';
+      }, 2000);
+    });
+  }
+
+  function copyAll() {
+    if (!window._posts) return;
+    navigator.clipboard.writeText(window._posts.join('\n\n---\n\n')).then(() => {
+      const btn = document.getElementById('copyAllBtn');
+      btn.classList.add('copied');
+      btn.innerHTML = checkIcon + ' Tersalin!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = copyAllIcon + ' Copy Semua';
+      }, 2000);
+    });
+  }
+</script>
+</body>
+</html>

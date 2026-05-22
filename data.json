@@ -1,0 +1,488 @@
+[
+  {
+    "name": "Thread Splitter",
+    "desc": "Split long text into Twitter/X threads automatically",
+    "category": ["Text"],
+    "emoji": "📃",
+    "image": "",
+    "url": "./thread-splitter/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "MotionForge",
+    "desc": "Background video motion generator for creative projects",
+    "category": ["Video", "Image"],
+    "emoji": "🌌",
+    "image": "",
+    "url": "./generate-motion-video",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Carousel Maker",
+    "desc": "Create carousel images for Instagram posts",
+    "category": ["Image", "Text"],
+    "emoji": "📚",
+    "image": "",
+    "url": "./carousel-generator/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Music Video Visualizer",
+    "desc": "Create music visualizers and export to WebM format",
+    "category": ["Video", "Audio"],
+    "emoji": "📶",
+    "image": "",
+    "url": "./music-visualizer/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Font Previewer",
+    "desc": "Preview Google Font combinations for your website",
+    "category": ["Dev", "Image"],
+    "emoji": "🔤",
+    "image": "",
+    "url": "./font-previewer/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Audio Editor",
+    "desc": "Edit audio in real-time directly from the browser",
+    "category": ["Video", "Audio"],
+    "emoji": "🎵",
+    "image": "",
+    "url": "./audio-editor/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Invoice Generator",
+    "desc": "Create simple invoice PDFs directly from the browser",
+    "category": ["Text", "Dev"],
+    "emoji": "🧾",
+    "image": "",
+    "url": "./invoice-generator/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Pixelizer",
+    "desc": "Convert photos into pixel art images",
+    "category": ["Image"],
+    "emoji": "🧱",
+    "image": "",
+    "url": "./image-pixelizer/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Video Narrator",
+    "desc": "Edit video narration with text-to-speech and images",
+    "category": ["Video", "Image"],
+    "emoji": "🎬",
+    "image": "",
+    "url": "./tts-video-generator/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Al-Ma'tsurat",
+    "desc": "Read Al-Ma'tsurat online anytime, anywhere",
+    "category": ["Productivity"],
+    "emoji": "📖",
+    "image": "",
+    "url": "https://lab.kukode.com/almatsurat/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "GMaps Image",
+    "desc": "Download images directly from Google Maps",
+    "category": ["Image"],
+    "emoji": "🌏",
+    "image": "",
+    "url": "https://lab.kukode.com/mapimg/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Lipsum",
+    "desc": "Lorem Ipsum text generator with custom options",
+    "category": ["Text", "Dev"],
+    "emoji": "📜",
+    "image": "",
+    "url": "https://lab.kukode.com/lipsum-generator",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Flexbox Playground",
+    "desc": "Interactive CSS Flexbox visual playground",
+    "category": ["Dev"],
+    "emoji": "🪟",
+    "image": "",
+    "url": "https://lab.kukode.com/flex/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Password Generator",
+    "desc": "Generate strong and secure passwords instantly",
+    "category": ["Dev", "Text"],
+    "emoji": "🔐",
+    "image": "",
+    "url": "https://lab.kukode.com/password-generator/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Noisli",
+    "desc": "Nature background sound player for focus and coding",
+    "category": ["Audio", "Productivity"],
+    "emoji": "🔊",
+    "image": "",
+    "url": "https://lab.kukode.com/noisli",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "MiniPaint",
+    "desc": "Online image editor and paint tool in the browser",
+    "category": ["Image"],
+    "emoji": "🖼️",
+    "image": "",
+    "url": "https://lab.kukode.com/miniPaint/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Relax",
+    "desc": "Online text writer with relaxing background sounds",
+    "category": ["Audio", "Text"],
+    "emoji": "🎧",
+    "image": "",
+    "url": "https://lab.kukode.com/relax/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Picser",
+    "desc": "Free image uploader and hosting service",
+    "category": ["Image", "Dev"],
+    "emoji": "🏞️",
+    "image": "",
+    "url": "https://image.exe.my.id/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "QuizReel",
+    "desc": "Generate quiz videos formatted for YouTube Shorts",
+    "category": ["Video", "Text"],
+    "emoji": "🎬",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "PWA to APK",
+    "desc": "Convert a Progressive Web App into an Android APK file",
+    "category": ["Dev"],
+    "emoji": "📱",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Image Resizer",
+    "desc": "Resize and compress images directly in the browser",
+    "category": ["Image", "Dev"],
+    "emoji": "📐",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Color Palette",
+    "desc": "Create harmonious color palettes for UI design",
+    "category": ["Image", "Dev"],
+    "emoji": "🎨",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Text Counter",
+    "desc": "Count words, characters, and estimate reading time",
+    "category": ["Text"],
+    "emoji": "📝",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Video Trimmer",
+    "desc": "Trim and cut videos directly in the browser without uploading",
+    "category": ["Video"],
+    "emoji": "✂️",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Favicon Generator",
+    "desc": "Create favicon ICO and PNG files from emoji or text",
+    "category": ["Dev", "Image"],
+    "emoji": "⚡",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Markdown Editor",
+    "desc": "Markdown editor with real-time live preview",
+    "category": ["Text", "Dev"],
+    "emoji": "📄",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "CSS Gradient Generator",
+    "desc": "Build CSS gradients visually with a color picker, copy code instantly",
+    "category": ["Image", "Dev"],
+    "emoji": "🌈",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Pomodoro Timer",
+    "desc": "25/5 minute focus timer with browser notifications and session stats",
+    "category": ["Productivity"],
+    "emoji": "🍅",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Base64 Encoder",
+    "desc": "Encode or decode text and images to Base64 format instantly",
+    "category": ["Dev", "Text"],
+    "emoji": "🔢",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "JSON Formatter",
+    "desc": "Paste messy JSON and get it formatted cleanly with error validation",
+    "category": ["Dev"],
+    "emoji": "📋",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Aspect Ratio Calculator",
+    "desc": "Calculate dimensions based on ratios like 16:9, 4:3, or custom",
+    "category": ["Image", "Video"],
+    "emoji": "📏",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Unit Converter",
+    "desc": "Convert units of length, weight, temperature, and volume quickly",
+    "category": ["Productivity"],
+    "emoji": "⚖️",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "QR Code Generator",
+    "desc": "Generate QR codes from text or URLs and download as PNG",
+    "category": ["Dev", "Image"],
+    "emoji": "📷",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Lorem Ipsum Generator",
+    "desc": "Generate dummy text with custom paragraph, word, or sentence counts",
+    "category": ["Text"],
+    "emoji": "📃",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Color Contrast Checker",
+    "desc": "Check text vs background color contrast ratio against WCAG standards",
+    "category": ["Image", "Dev"],
+    "emoji": "🔍",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Timestamp Converter",
+    "desc": "Convert Unix timestamps to human-readable dates and times",
+    "category": ["Dev"],
+    "emoji": "🕐",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Markdown to HTML",
+    "desc": "Convert Markdown documents to HTML with a live preview",
+    "category": ["Text", "Dev"],
+    "emoji": "🔄",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Stopwatch & Lap Timer",
+    "desc": "High-precision stopwatch with lap time recording per segment",
+    "category": ["Productivity"],
+    "emoji": "⏱️",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Word Frequency Counter",
+    "desc": "Paste text to see the most frequent words and their counts",
+    "category": ["Text"],
+    "emoji": "📈",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Image Color Picker",
+    "desc": "Upload an image, click any pixel, and get its HEX and RGB codes",
+    "category": ["Image"],
+    "emoji": "🎯",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Bio Link Builder",
+    "desc": "Build a simple and clean link-in-bio page and export as HTML",
+    "category": ["Text", "Image"],
+    "emoji": "🔗",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Subtitle Styler",
+    "desc": "Preview and customize SRT subtitle styles with font, color, and position",
+    "category": ["Video", "Text"],
+    "emoji": "🎞️",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Get YouTube Thumbnail",
+    "desc": "Fetch and download YouTube thumbnail images by video URL",
+    "category": ["Video", "Image"],
+    "emoji": "🖼️",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Aspect Ratio Cropper",
+    "desc": "Visually simulate video frame cropping for different screen ratios",
+    "category": ["Video", "Image"],
+    "emoji": "✂️",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Storyboard Builder",
+    "desc": "Build visual storyboards with scene grids, placeholders, and notes",
+    "category": ["Video", "Image"],
+    "emoji": "📋",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Countdown Overlay",
+    "desc": "Create animated SVG/CSS countdowns for video intros and transitions",
+    "category": ["Video", "Image"],
+    "emoji": "⏳",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Lower Third Generator",
+    "desc": "Create professional lower-third graphics for videos, export as PNG or SVG",
+    "category": ["Video", "Image"],
+    "emoji": "📺",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Video Caption Formatter",
+    "desc": "Format video caption text to fit character limits and line breaks",
+    "category": ["Video", "Text"],
+    "emoji": "💬",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Budget Calculator",
+    "desc": "Track and calculate monthly expenses by category with a summary",
+    "category": ["Productivity"],
+    "emoji": "💰",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Kanban Board",
+    "desc": "Simple drag-and-drop kanban board for daily task management",
+    "category": ["Productivity"],
+    "emoji": "📌",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "SVG Icon Editor",
+    "desc": "Edit and preview SVG icons directly in the browser, export ready to use",
+    "category": ["Image", "Dev"],
+    "emoji": "✏️",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "CSS Animation Builder",
+    "desc": "Build CSS keyframe animations visually and copy the code instantly",
+    "category": ["Dev", "Image"],
+    "emoji": "🎠",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Note to Image",
+    "desc": "Write sticky-note style text and export it as a PNG image",
+    "category": ["Text", "Image"],
+    "emoji": "🗒️",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Reading Time Estimator",
+    "desc": "Paste an article to estimate reading time based on WPM speed",
+    "category": ["Text", "Productivity"],
+    "emoji": "📖",
+    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
+    "url": "#",
+    "lastmod": "2026-05-01"
+  }
+]

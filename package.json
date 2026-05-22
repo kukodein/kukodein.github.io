@@ -1,7 +1,7 @@
 {
-  "name": "sitemap-generator",
+  "name": "lab-kukode",
   "version": "1.0.0",
-  "description": "Generate sitemap.xml from urls.json",
+  "description": "All Playground Lab on Kukode",
   "main": "generate_sitemap.js",
   "scripts": {
     "generate": "node generate_sitemap.js"

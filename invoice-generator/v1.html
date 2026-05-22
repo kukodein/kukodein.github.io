@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice Generator</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { background: #f0f2f5; font-family: 'Inter', sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  }
+  .topbar-title { font-size: 16px; font-weight: 700; letter-spacing: -.3px; }
+  .topbar-title span { color: #4f8ef7; }
+
+  .lang-toggle { display: flex; background: rgba(255,255,255,.1); border-radius: 20px; padding: 3px; gap: 2px; }
+  .lang-btn {
+    border: none; background: none; padding: 4px 16px;
+    border-radius: 16px; font-size: 12px; font-weight: 600;
+    cursor: pointer; color: rgba(255,255,255,.6); transition: all .2s;
+  }
+  .lang-btn.active { background: #4f8ef7; color: #fff; }
+
+  /* ── LAYOUT ── */
+  .main-wrapper { display: grid; grid-template-columns: 400px 1fr; gap: 0; min-height: calc(100vh - 52px); }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    background: #fff;
+    border-right: 1px solid #e5e7eb;
+    display: flex; flex-direction: column;
+    overflow-y: auto; max-height: calc(100vh - 52px);
+    position: sticky; top: 52px;
+  }
+
+  .tab-bar {
+    display: flex; border-bottom: 1px solid #e5e7eb;
+    background: #fafafa; flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1; border: none; background: none;
+    padding: 13px 8px; font-size: 13px; font-weight: 500;
+    color: #6b7280; border-bottom: 2px solid transparent;
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .tab-btn:hover { color: #111; }
+  .tab-btn.active { color: #4f8ef7; border-bottom: 2px solid #4f8ef7; background: #fff; }
+
+  .panel { display: none; padding: 20px; flex: 1; overflow-y: auto; }
+  .panel.active { display: block; }
+
+  .sec-label {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: #9ca3af; margin-bottom: 6px;
+  }
+  .form-control, .form-select {
+    font-size: 13.5px; border-color: #e5e7eb;
+    border-radius: 8px; padding: 8px 12px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #4f8ef7; box-shadow: 0 0 0 3px rgba(79,142,247,.12);
+  }
+  textarea.form-control { resize: vertical; }
+
+  .divider { border: none; border-top: 1px solid #f3f4f6; margin: 16px 0; }
+
+  /* item rows */
+  .item-row {
+    background: #f9fafb; border: 1px solid #e5e7eb;
+    border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+  }
+  .item-row input { background: #fff; }
+
+  /* color swatches */
+  .color-swatch { width: 40px; height: 36px; padding: 2px; border-radius: 8px; cursor: pointer; border: 1.5px solid #e5e7eb; }
+
+  /* export btn */
+  .btn-export {
+    background: linear-gradient(135deg, #4f8ef7, #2563eb);
+    color: #fff; border: none; border-radius: 10px;
+    padding: 12px 20px; font-size: 14px; font-weight: 600;
+    width: 100%; cursor: pointer; transition: all .2s;
+    box-shadow: 0 2px 8px rgba(79,142,247,.35);
+  }
+  .btn-export:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79,142,247,.45); }
+  .btn-export:active { transform: none; }
+
+  .export-wrap { padding: 16px 20px; border-top: 1px solid #f0f2f5; flex-shrink: 0; background: #fff; }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    padding: 32px;
+    display: flex; flex-direction: column; align-items: center;
+    overflow-y: auto;
+  }
+  .preview-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: #9ca3af; margin-bottom: 14px;
+    align-self: flex-start;
+  }
+
+  /* ── INVOICE PREVIEW ── */
+  #invoice-preview {
+    width: 794px; /* A4 96dpi */
+    min-height: 580px;
+    background: #ffffff;
+    color: #212529;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 32px rgba(0,0,0,.12);
+    border-radius: 4px;
+  }
+
+  #inv-bg-layer {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    opacity: .12; pointer-events: none;
+  }
+
+  .inv-content { position: relative; z-index: 1; padding: 52px 56px; }
+
+  .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; }
+  .inv-header-left {}
+  #preview-logo { max-height: 72px; max-width: 180px; object-fit: contain; margin-bottom: 10px; display: none; }
+  #preview-company { font-size: 19px; font-weight: 700; line-height: 1.2; }
+  #preview-address { font-size: 12.5px; opacity: .6; margin-top: 4px; white-space: pre-line; line-height: 1.5; }
+  #preview-web { font-size: 12px; opacity: .45; margin-top: 2px; }
+
+  .inv-header-right { text-align: right; }
+  #inv-title-text { font-size: 32px; font-weight: 800; letter-spacing: -.5px; color: #4f8ef7; line-height: 1; margin-bottom: 10px; }
+  #preview-invno, #preview-date, #preview-due { font-size: 12.5px; opacity: .6; line-height: 1.7; }
+
+  .inv-billed { margin-bottom: 28px; }
+  .inv-billed-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-bottom: 4px; }
+  #preview-client-name { font-weight: 600; font-size: 14px; }
+  #preview-client-addr { font-size: 12.5px; opacity: .6; white-space: pre-line; margin-top: 2px; line-height: 1.5; }
+
+  .inv-table { width: 100%; border-collapse: collapse; }
+  .inv-table thead tr { border-top: 2px solid currentColor; border-bottom: 1px solid rgba(0,0,0,.12); }
+  .inv-table th { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 8px 10px; opacity: .55; }
+  .inv-table td { font-size: 13px; padding: 9px 10px; border-bottom: 1px solid rgba(0,0,0,.07); }
+  .inv-table th:first-child, .inv-table td:first-child { text-align: left; }
+  .inv-table th:not(:first-child), .inv-table td:not(:first-child) { text-align: right; }
+
+  .inv-totals { display: flex; justify-content: flex-end; margin-top: 16px; }
+  .inv-totals-inner { min-width: 220px; font-size: 13px; }
+  .totals-row { display: flex; justify-content: space-between; padding: 4px 0; }
+  .totals-row.discount { color: #e53e3e; }
+  .totals-row.grand { border-top: 2px solid currentColor; margin-top: 6px; padding-top: 10px; font-weight: 700; font-size: 15px; }
+
+  .inv-notes { margin-top: 36px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,.1); }
+  .inv-notes-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-bottom: 6px; }
+  #preview-notes { font-size: 12.5px; opacity: .7; white-space: pre-line; line-height: 1.6; }
+
+  /* range slider */
+  .form-range { accent-color: #4f8ef7; }
+
+  /* responsive */
+  @media (max-width: 1100px) {
+    .main-wrapper { grid-template-columns: 1fr; }
+    .left-panel { position: static; max-height: none; border-right: none; border-bottom: 1px solid #e5e7eb; }
+    .right-panel { padding: 20px; }
+    #invoice-preview { width: 100%; max-width: 794px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-title">Invoice <span>Generator</span></div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('id')">🇮🇩 ID</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+  </div>
+</div>
+
+<div class="main-wrapper">
+
+  <!-- LEFT: FORM -->
+  <div class="left-panel">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('perusahaan')" id="tab-label-perusahaan">Perusahaan</button>
+      <button class="tab-btn" onclick="switchTab('item')" id="tab-label-item">Item</button>
+      <button class="tab-btn" onclick="switchTab('tampilan')" id="tab-label-tampilan">Tampilan</button>
+    </div>
+
+    <!-- TAB: PERUSAHAAN -->
+    <div id="tab-perusahaan" class="panel active">
+      <div class="mb-3">
+        <div class="sec-label" id="lbl-logo">Logo Perusahaan</div>
+        <input type="file" class="form-control form-control-sm" id="logoInput" accept="image/*" onchange="handleLogo(this)">
+      </div>
+      <div class="mb-3">
+        <div class="sec-label" id="lbl-company">Nama Perusahaan</div>
+        <input type="text" class="form-control" id="companyName" oninput="updatePreview()">
+      </div>
+      <div class="mb-3">
+        <div class="sec-label" id="lbl-address">Alamat</div>
+        <textarea class="form-control" id="companyAddress" rows="2" oninput="updatePreview()"></textarea>
+      </div>
+      <div class="mb-3">
+        <div class="sec-label">Website</div>
+        <input type="text" class="form-control" id="companyWeb" oninput="updatePreview()">
+      </div>
+      <hr class="divider">
+      <div class="sec-label mb-2" id="lbl-client">Info Klien</div>
+      <div class="mb-3">
+        <input type="text" class="form-control mb-2" id="clientName" oninput="updatePreview()">
+        <textarea class="form-control" id="clientAddress" rows="2" oninput="updatePreview()"></textarea>
+      </div>
+      <hr class="divider">
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <div class="sec-label" id="lbl-invno">No. Invoice</div>
+          <input type="text" class="form-control" id="invNumber" oninput="updatePreview()">
+        </div>
+        <div class="col-6">
+          <div class="sec-label" id="lbl-date">Tanggal</div>
+          <input type="date" class="form-control" id="invDate" oninput="updatePreview()">
+        </div>
+      </div>
+      <div>
+        <div class="sec-label" id="lbl-due">Jatuh Tempo</div>
+        <input type="date" class="form-control" id="invDue" oninput="updatePreview()">
+      </div>
+    </div>
+
+    <!-- TAB: ITEM -->
+    <div id="tab-item" class="panel">
+      <div id="items-container"></div>
+      <button class="btn btn-sm btn-outline-primary w-100 mt-1 mb-3" id="btn-add-item" onclick="addItem()">+ Tambah Item</button>
+      <hr class="divider">
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <div class="sec-label" id="lbl-discount">Diskon (%)</div>
+          <input type="number" class="form-control" id="discountVal" value="0" min="0" max="100" oninput="updatePreview()">
+        </div>
+        <div class="col-6">
+          <div class="sec-label" id="lbl-tax">Pajak / PPN (%)</div>
+          <input type="number" class="form-control" id="taxVal" value="0" min="0" oninput="updatePreview()">
+        </div>
+      </div>
+      <div>
+        <div class="sec-label" id="lbl-notes">Catatan / Notes</div>
+        <textarea class="form-control" id="invNotes" rows="4" oninput="updatePreview()"></textarea>
+      </div>
+    </div>
+
+    <!-- TAB: TAMPILAN -->
+    <div id="tab-tampilan" class="panel">
+      <div class="mb-3">
+        <div class="sec-label" id="lbl-font">Jenis Font</div>
+        <select class="form-select" id="fontSelect" onchange="applyFont()">
+          <option value="Inter">Inter (default)</option>
+          <option value="Poppins">Poppins</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Lato">Lato</option>
+          <option value="Playfair Display">Playfair Display</option>
+          <option value="Merriweather">Merriweather</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="Nunito">Nunito</option>
+          <option value="DM Sans">DM Sans</option>
+          <option value="Source Sans 3">Source Sans 3</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <div class="sec-label" id="lbl-colors">Warna</div>
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px" id="lbl-bg-color">Background</div>
+            <input type="color" class="color-swatch" id="bgColor" value="#ffffff" oninput="applyColors()">
+          </div>
+          <div>
+            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px" id="lbl-text-color">Teks</div>
+            <input type="color" class="color-swatch" id="textColor" value="#212529" oninput="applyColors()">
+          </div>
+          <div>
+            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px" id="lbl-accent-color">Aksen</div>
+            <input type="color" class="color-swatch" id="accentColor" value="#4f8ef7" oninput="applyColors()">
+          </div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="sec-label" id="lbl-bg-img">Gambar Background</div>
+        <input type="file" class="form-control form-control-sm" id="bgImageInput" accept="image/*" onchange="handleBgImage(this)">
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+          <span style="font-size:12px;color:#9ca3af;white-space:nowrap" id="lbl-opacity">Opacity</span>
+          <input type="range" class="form-range" id="bgOpacity" min="5" max="40" value="12" step="1" oninput="applyBgOpacity(this.value)">
+          <span style="font-size:12px;color:#6b7280;min-width:32px" id="opacity-val">12%</span>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary mt-2 w-100" id="btn-remove-bg" onclick="removeBgImage()">Hapus Background</button>
+      </div>
+    </div>
+
+    <div class="export-wrap">
+      <button class="btn-export" onclick="exportPDF()" id="btn-export">⬇ Export PDF</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: PREVIEW -->
+  <div class="right-panel">
+    <div class="preview-label" id="lbl-preview">Preview Invoice</div>
+    <div id="invoice-preview">
+      <div id="inv-bg-layer"></div>
+      <div class="inv-content">
+        <!-- HEADER -->
+        <div class="inv-header">
+          <div class="inv-header-left">
+            <img id="preview-logo" src="" alt="Logo">
+            <div id="preview-company">PT. Nama Perusahaan</div>
+            <div id="preview-address"></div>
+            <div id="preview-web"></div>
+          </div>
+          <div class="inv-header-right">
+            <div id="inv-title-text">INVOICE</div>
+            <div id="preview-invno"></div>
+            <div id="preview-date"></div>
+            <div id="preview-due"></div>
+          </div>
+        </div>
+
+        <!-- BILLED TO -->
+        <div id="preview-client-block" class="inv-billed" style="display:none">
+          <div class="inv-billed-label" id="lbl-billed-to">Ditagihkan Kepada</div>
+          <div id="preview-client-name"></div>
+          <div id="preview-client-addr"></div>
+        </div>
+
+        <!-- TABLE -->
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th id="th-desc">Deskripsi</th>
+              <th id="th-qty" style="width:60px">Qty</th>
+              <th id="th-price" style="width:120px">Harga</th>
+              <th id="th-sub" style="width:120px">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="preview-items"></tbody>
+        </table>
+
+        <!-- TOTALS -->
+        <div class="inv-totals">
+          <div class="inv-totals-inner">
+            <div class="totals-row">
+              <span id="lbl-subtotal-row">Subtotal</span>
+              <span id="prev-subtotal">Rp 0</span>
+            </div>
+            <div class="totals-row discount" id="discount-row" style="display:none">
+              <span id="discount-label">Diskon (0%)</span>
+              <span id="prev-discount">- Rp 0</span>
+            </div>
+            <div class="totals-row" id="tax-row" style="display:none">
+              <span id="tax-label">PPN (0%)</span>
+              <span id="prev-tax">Rp 0</span>
+            </div>
+            <div class="totals-row grand">
+              <span id="lbl-total-row">TOTAL</span>
+              <span id="prev-total">Rp 0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTES -->
+        <div id="preview-notes-block" class="inv-notes" style="display:none">
+          <div class="inv-notes-label" id="lbl-notes-preview">Catatan</div>
+          <div id="preview-notes"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ─── TRANSLATIONS ──────────────────────────────────────────
+const T = {
+  id: {
+    tabCompany:'Perusahaan', tabItem:'Item', tabStyle:'Tampilan',
+    logo:'Logo Perusahaan', company:'Nama Perusahaan', address:'Alamat', client:'Info Klien',
+    invno:'No. Invoice', date:'Tanggal', due:'Jatuh Tempo',
+    addItem:'+ Tambah Item', discount:'Diskon (%)', tax:'Pajak / PPN (%)', notes:'Catatan / Notes',
+    font:'Jenis Font', colors:'Warna', bgColor:'Background', textColor:'Teks', accentColor:'Aksen',
+    bgImg:'Gambar Background', opacity:'Opacity', removeBg:'Hapus Background',
+    exportBtn:'⬇ Export PDF', preview:'Preview Invoice',
+    billedTo:'Ditagihkan Kepada', descCol:'Deskripsi', qtyCol:'Qty', priceCol:'Harga', subCol:'Subtotal',
+    subtotalRow:'Subtotal', totalRow:'TOTAL', discountWord:'Diskon', taxWord:'PPN', notesPreview:'Catatan',
+    companyPH:'PT. Nama Perusahaan', clientPH:'Nama Klien / Perusahaan',
+    clientAddrPH:'Alamat klien', notesPH:'Catatan tambahan, syarat pembayaran, dll.',
+    itemName:'Nama item', itemSub:'Subtotal', dateLocale:'id-ID', currency:'Rp'
+  },
+  en: {
+    tabCompany:'Company', tabItem:'Items', tabStyle:'Appearance',
+    logo:'Company Logo', company:'Company Name', address:'Address', client:'Client Info',
+    invno:'Invoice No.', date:'Date', due:'Due Date',
+    addItem:'+ Add Item', discount:'Discount (%)', tax:'Tax / VAT (%)', notes:'Notes',
+    font:'Font', colors:'Colors', bgColor:'Background', textColor:'Text', accentColor:'Accent',
+    bgImg:'Background Image', opacity:'Opacity', removeBg:'Remove Background',
+    exportBtn:'⬇ Export PDF', preview:'Invoice Preview',
+    billedTo:'Bill To', descCol:'Description', qtyCol:'Qty', priceCol:'Price', subCol:'Subtotal',
+    subtotalRow:'Subtotal', totalRow:'TOTAL', discountWord:'Discount', taxWord:'VAT', notesPreview:'Notes',
+    companyPH:'Company Name, Inc.', clientPH:'Client Name / Company',
+    clientAddrPH:'Client address', notesPH:'Payment terms, notes, etc.',
+    itemName:'Item name', itemSub:'Subtotal', dateLocale:'en-US', currency:'$'
+  }
+};
+
+let lang = 'id';
+let items = [{name:'', qty:1, price:0}];
+let fontLoaded = 'Inter';
+
+// ─── LANGUAGE ──────────────────────────────────────────────
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(l.toUpperCase()));
+  });
+  const t = T[l];
+  const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  const setPH = (id, val) => { const el = document.getElementById(id); if(el) el.placeholder = val; };
+
+  set('tab-label-perusahaan', t.tabCompany);
+  set('tab-label-item', t.tabItem);
+  set('tab-label-tampilan', t.tabStyle);
+  set('lbl-logo', t.logo);
+  set('lbl-company', t.company);
+  set('lbl-address', t.address);
+  set('lbl-client', t.client);
+  set('lbl-invno', t.invno);
+  set('lbl-date', t.date);
+  set('lbl-due', t.due);
+  set('btn-add-item', t.addItem);
+  set('lbl-discount', t.discount);
+  set('lbl-tax', t.tax);
+  set('lbl-notes', t.notes);
+  set('lbl-font', t.font);
+  set('lbl-colors', t.colors);
+  set('lbl-bg-color', t.bgColor);
+  set('lbl-text-color', t.textColor);
+  set('lbl-accent-color', t.accentColor);
+  set('lbl-bg-img', t.bgImg);
+  set('lbl-opacity', t.opacity);
+  set('btn-remove-bg', t.removeBg);
+  set('btn-export', t.exportBtn);
+  set('lbl-preview', t.preview);
+  setPH('companyName', t.companyPH);
+  setPH('clientName', t.clientPH);
+  setPH('clientAddress', t.clientAddrPH);
+  setPH('invNotes', t.notesPH);
+  renderItems();
+  updatePreview();
+}
+
+// ─── TABS ──────────────────────────────────────────────────
+function switchTab(tab) {
+  ['perusahaan','item','tampilan'].forEach(t => {
+    document.getElementById('tab-label-'+t).classList.toggle('active', t === tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+  });
+}
+
+// ─── FORMAT ────────────────────────────────────────────────
+function fmt(n) {
+  const t = T[lang];
+  if (t.currency === '$') return '$' + Math.round(n).toLocaleString('en-US');
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString(T[lang].dateLocale, {day:'numeric', month:'long', year:'numeric'});
+}
+
+// ─── ITEMS ─────────────────────────────────────────────────
+function addItem() { items.push({name:'', qty:1, price:0}); renderItems(); updatePreview(); }
+
+function removeItem(i) {
+  if (items.length > 1) { items.splice(i,1); renderItems(); updatePreview(); }
+}
+
+function renderItems() {
+  const c = document.getElementById('items-container');
+  const t = T[lang];
+  c.innerHTML = '';
+  items.forEach((item, i) => {
+    const d = document.createElement('div');
+    d.className = 'item-row';
+    d.innerHTML = `
+      <div class="row g-1 align-items-center mb-1">
+        <div class="col-5">
+          <input type="text" class="form-control form-control-sm" placeholder="${t.itemName}"
+            value="${escHtml(item.name)}" oninput="items[${i}].name=this.value;updatePreview()">
+        </div>
+        <div class="col-2">
+          <input type="number" class="form-control form-control-sm" min="1" value="${item.qty}"
+            oninput="items[${i}].qty=Math.max(1,+this.value);updatePreview()" placeholder="Qty">
+        </div>
+        <div class="col-3">
+          <input type="number" class="form-control form-control-sm" min="0" value="${item.price}"
+            oninput="items[${i}].price=+this.value;updatePreview()" placeholder="0">
+        </div>
+        <div class="col-2 text-end">
+          <button class="btn btn-sm btn-outline-danger" onclick="removeItem(${i})"
+            style="padding:2px 7px;font-size:12px;border-radius:6px">✕</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#9ca3af">${t.itemSub}: ${fmt(item.qty * item.price)}</div>`;
+    c.appendChild(d);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── UPDATE PREVIEW ────────────────────────────────────────
+function updatePreview() {
+  const t = T[lang];
+  const inv = document.getElementById('invoice-preview');
+
+  // company
+  document.getElementById('preview-company').textContent =
+    document.getElementById('companyName').value || t.companyPH;
+  document.getElementById('preview-address').textContent =
+    document.getElementById('companyAddress').value;
+  document.getElementById('preview-web').textContent =
+    document.getElementById('companyWeb').value;
+
+  // client
+  const cn = document.getElementById('clientName').value;
+  const ca = document.getElementById('clientAddress').value;
+  const cb = document.getElementById('preview-client-block');
+  if (cn || ca) {
+    cb.style.display = 'block';
+    document.getElementById('preview-client-name').textContent = cn;
+    document.getElementById('preview-client-addr').textContent = ca;
+    document.getElementById('lbl-billed-to').textContent = t.billedTo;
+  } else {
+    cb.style.display = 'none';
+  }
+
+  // invoice meta
+  const num = document.getElementById('invNumber').value;
+  document.getElementById('preview-invno').textContent = num ? t.invno + ' ' + num : '';
+  const dt = document.getElementById('invDate').value;
+  document.getElementById('preview-date').textContent = dt ? t.date + ': ' + fmtDate(dt) : '';
+  const due = document.getElementById('invDue').value;
+  document.getElementById('preview-due').textContent = due ? t.due + ': ' + fmtDate(due) : '';
+
+  // table headers
+  document.getElementById('th-desc').textContent = t.descCol;
+  document.getElementById('th-qty').textContent  = t.qtyCol;
+  document.getElementById('th-price').textContent = t.priceCol;
+  document.getElementById('th-sub').textContent  = t.subCol;
+
+  // items
+  const tbody = document.getElementById('preview-items');
+  tbody.innerHTML = '';
+  let sub = 0;
+  items.forEach(item => {
+    const s = item.qty * item.price;
+    sub += s;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${item.name || '-'}</td>
+      <td>${item.qty}</td>
+      <td>${fmt(item.price)}</td>
+      <td>${fmt(s)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // totals
+  const discPct = +document.getElementById('discountVal').value || 0;
+  const taxPct  = +document.getElementById('taxVal').value || 0;
+  const discAmt = sub * discPct / 100;
+  const afterDisc = sub - discAmt;
+  const taxAmt  = afterDisc * taxPct / 100;
+  const total   = afterDisc + taxAmt;
+
+  document.getElementById('lbl-subtotal-row').textContent = t.subtotalRow;
+  document.getElementById('lbl-total-row').textContent    = t.totalRow;
+  document.getElementById('prev-subtotal').textContent = fmt(sub);
+
+  const drow = document.getElementById('discount-row');
+  drow.style.display = discPct > 0 ? 'flex' : 'none';
+  document.getElementById('discount-label').textContent = t.discountWord + ' (' + discPct + '%)';
+  document.getElementById('prev-discount').textContent  = '- ' + fmt(discAmt);
+
+  const trow = document.getElementById('tax-row');
+  trow.style.display = taxPct > 0 ? 'flex' : 'none';
+  document.getElementById('tax-label').textContent = t.taxWord + ' (' + taxPct + '%)';
+  document.getElementById('prev-tax').textContent  = fmt(taxAmt);
+  document.getElementById('prev-total').textContent = fmt(total);
+
+  // notes
+  const notes = document.getElementById('invNotes').value;
+  const nb = document.getElementById('preview-notes-block');
+  if (notes) {
+    nb.style.display = 'block';
+    document.getElementById('preview-notes').textContent = notes;
+    document.getElementById('lbl-notes-preview').textContent = t.notesPreview;
+  } else {
+    nb.style.display = 'none';
+  }
+}
+
+// ─── LOGO ──────────────────────────────────────────────────
+function handleLogo(input) {
+  const file = input.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const img = document.getElementById('preview-logo');
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  r.readAsDataURL(file);
+}
+
+// ─── BG IMAGE ──────────────────────────────────────────────
+function handleBgImage(input) {
+  const file = input.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    document.getElementById('inv-bg-layer').style.backgroundImage = `url('${e.target.result}')`;
+  };
+  r.readAsDataURL(file);
+}
+
+function removeBgImage() {
+  document.getElementById('inv-bg-layer').style.backgroundImage = 'none';
+  document.getElementById('bgImageInput').value = '';
+}
+
+function applyBgOpacity(val) {
+  document.getElementById('inv-bg-layer').style.opacity = val / 100;
+  document.getElementById('opacity-val').textContent = val + '%';
+}
+
+// ─── COLORS ────────────────────────────────────────────────
+function applyColors() {
+  const bg  = document.getElementById('bgColor').value;
+  const txt = document.getElementById('textColor').value;
+  const acc = document.getElementById('accentColor').value;
+  const inv = document.getElementById('invoice-preview');
+  inv.style.background = bg;
+  inv.style.color = txt;
+  document.getElementById('inv-title-text').style.color = acc;
+}
+
+// ─── FONT ──────────────────────────────────────────────────
+function applyFont() {
+  const font = document.getElementById('fontSelect').value;
+  if (font === fontLoaded) return;
+  fontLoaded = font;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(font)}:wght@400;500;600;700&display=swap`;
+  document.head.appendChild(link);
+  document.getElementById('invoice-preview').style.fontFamily = `'${font}', sans-serif`;
+}
+
+// ─── EXPORT PDF ────────────────────────────────────────────
+function exportPDF() {
+  const el  = document.getElementById('invoice-preview');
+  const num = document.getElementById('invNumber').value || 'invoice';
+  const bg  = document.getElementById('bgColor').value || '#ffffff';
+  html2pdf().set({
+    margin: 0,
+    filename: `invoice-${num}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: bg, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(el).save();
+}
+
+// ─── INIT ──────────────────────────────────────────────────
+function init() {
+  const today = new Date();
+  const iso = d => d.toISOString().split('T')[0];
+  document.getElementById('invDate').value = iso(today);
+  const due = new Date(today); due.setDate(due.getDate() + 14);
+  document.getElementById('invDue').value = iso(due);
+  const y = today.getFullYear();
+  const m = String(today.getMonth()+1).padStart(2,'0');
+  const d = String(today.getDate()).padStart(2,'0');
+  document.getElementById('invNumber').value = `INV-${y}${m}${d}-001`;
+  renderItems();
+  updatePreview();
+}
+
+init();
+</script>
+</body>
+</html>

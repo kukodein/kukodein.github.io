@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f11;--bg2:#1a1a1e;--bg3:#242428;--border:#333;
+  --text:#f0f0f0;--text2:#aaa;--accent:#f5a623;--accent2:#ff6b35;
+  --track-h:80px;--danger:#e74c3c;--success:#2ecc71
+}
+.light{
+  --bg:#f5f5f0;--bg2:#fff;--bg3:#eee;--border:#ddd;
+  --text:#111;--text2:#666;--accent:#e8940a;--track-h:80px
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+#app{max-width:900px;margin:0 auto;padding:16px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:14px}
+.logo{font-weight:600;font-size:16px;letter-spacing:-0.5px}
+.logo span{color:var(--accent)}
+.toggle-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px}
+.toggle-btn:hover{border-color:var(--accent)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.btn{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:7px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;transition:all 0.15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#000}
+.btn.primary:hover{opacity:0.9}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn:disabled{opacity:0.4;cursor:default}
+.section-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.tracks-area{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;min-height:180px}
+.track-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.track{display:flex;align-items:stretch;border-bottom:1px solid var(--border);min-height:var(--track-h)}
+.track:last-child{border-bottom:none}
+.track-controls{width:180px;min-width:180px;padding:10px 12px;background:var(--bg3);border-right:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.track-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.track-sub{font-size:11px;color:var(--text2)}
+.vol-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)}
+.vol-row input[type=range]{flex:1;height:4px;accent-color:var(--accent)}
+.vol-val{min-width:28px;text-align:right;font-size:11px}
+.track-actions{display:flex;gap:4px;margin-top:2px}
+.tbtn{background:none;border:1px solid var(--border);color:var(--text2);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-family:'Inter',sans-serif}
+.tbtn:hover{border-color:var(--accent);color:var(--accent)}
+.tbtn.active{border-color:var(--accent);color:var(--accent);background:rgba(245,166,35,0.08)}
+.tbtn.red:hover{border-color:var(--danger);color:var(--danger)}
+.waveform-area{flex:1;position:relative;overflow:hidden;cursor:crosshair;background:var(--bg)}
+canvas.waveform{position:absolute;top:0;left:0;width:100%;height:100%}
+.selection-overlay{position:absolute;top:0;height:100%;background:rgba(245,166,35,0.15);border:1px solid var(--accent);pointer-events:none;display:none}
+.playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);pointer-events:none}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;color:var(--text2);gap:8px;font-size:13px}
+.transport{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;flex-wrap:wrap}
+.time-display{font-family:'Inter',monospace;font-size:15px;font-weight:600;min-width:70px;color:var(--accent)}
+.status-bar{padding:8px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--text2);margin-bottom:14px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;width:340px;max-width:95vw}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:16px}
+.form-row{margin-bottom:12px}
+.form-row label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px}
+.form-row input,.form-row select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px}
+.form-row input:focus,.form-row select:focus{outline:none;border-color:var(--accent)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+input[type=file]{display:none}
+.progress-bar{height:3px;background:var(--bg3);border-radius:2px;margin-top:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);transition:width 0.1s}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="logo">Wave<span>Edit</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="proj-dur" style="font-size:12px;color:var(--text2)">0 track</span>
+      <button class="toggle-btn" onclick="toggleTheme()">☀ Light</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn primary" onclick="document.getElementById('file-input').click()">+ Tambah Audio</button>
+    <input type="file" id="file-input" accept="audio/*" multiple onchange="loadFiles(event)">
+    <button class="btn" onclick="playPause()" id="play-btn">▶ Play</button>
+    <button class="btn" onclick="stopAll()">■ Stop</button>
+    <button class="btn" id="trim-btn" onclick="trimSelected()" disabled title="Pilih area pada waveform lalu trim">✂ Trim</button>
+    <button class="btn" onclick="mergeAll()" id="merge-btn" disabled>⊕ Gabungkan</button>
+    <button class="btn primary" onclick="showExport()" id="export-btn" disabled>↓ Export</button>
+  </div>
+
+  <div class="tracks-area" id="tracks-container">
+    <div class="track-header">
+      <span class="section-label" style="margin:0">Tracks</span>
+      <span style="font-size:11px;color:var(--text2)">Klik & drag pada waveform untuk seleksi area</span>
+    </div>
+    <div id="track-list">
+      <div class="empty-state" id="empty-msg">
+        <div style="font-size:28px">🎵</div>
+        <div>Belum ada audio</div>
+        <div>Klik "+ Tambah Audio" untuk memulai</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="transport">
+    <span class="time-display" id="time-display">0:00.0</span>
+    <input type="range" id="seek-bar" min="0" max="100" value="0" style="flex:1;min-width:100px;accent-color:var(--accent)" oninput="seekTo(this.value)">
+    <span style="font-size:12px;color:var(--text2)" id="total-dur">/ 0:00</span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:12px;color:var(--text2)">Master Vol</span>
+      <input type="range" id="master-vol" min="0" max="150" value="100" style="width:80px;accent-color:var(--accent)" oninput="setMasterVol(this.value)">
+      <span style="font-size:12px;min-width:32px" id="mvol-val">100%</span>
+    </div>
+  </div>
+
+  <div class="status-bar" id="status">Siap. Tambahkan file audio untuk mulai mengedit.</div>
+</div>
+
+<div id="export-modal" style="display:none" class="modal-backdrop">
+  <div class="modal">
+    <h3>Export Audio</h3>
+    <div class="form-row">
+      <label>Mode Export</label>
+      <select id="export-mode">
+        <option value="mix">Mix semua track (overlay/tumpuk)</option>
+        <option value="concat">Gabungkan berurutan (concatenate)</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Format</label>
+      <select id="export-format">
+        <option value="wav">WAV (kualitas tinggi)</option>
+        <option value="webm">WebM (ukuran kecil)</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Nama file</label>
+      <input type="text" id="export-name" value="output">
+    </div>
+    <div id="export-progress" style="display:none">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px" id="export-status-txt">Memproses...</div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeExport()">Batal</button>
+      <button class="btn primary" onclick="doExport()">Export</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+let tracks = [];
+let masterGain = ctx.createGain();
+masterGain.connect(ctx.destination);
+let isPlaying = false;
+let playStartTime = 0;
+let playOffset = 0;
+let animFrame;
+let trackIdCounter = 0;
+let isDark = true;
+
+function toggleTheme(){
+  isDark = !isDark;
+  document.body.className = isDark ? '' : 'light';
+  document.querySelector('.toggle-btn').textContent = isDark ? '☀ Light' : '☾ Dark';
+  tracks.forEach(t => drawWave(t));
+}
+
+async function loadFiles(e){
+  const files = Array.from(e.target.files);
+  if(!files.length) return;
+  setStatus('Memuat ' + files.length + ' file...');
+  for(const f of files){
+    await loadFile(f);
+  }
+  e.target.value='';
+  updateButtons();
+  updateDuration();
+}
+
+async function loadFile(file){
+  const ab = await file.arrayBuffer();
+  let decoded;
+  try{ decoded = await ctx.decodeAudioData(ab); }
+  catch(err){ setStatus('Gagal decode: ' + file.name); return; }
+  const id = ++trackIdCounter;
+  const track = {
+    id, name: file.name.replace(/\.[^/.]+$/,''),
+    buffer: decoded, volume: 1, muted: false, solo: false,
+    trimStart: 0, trimEnd: decoded.duration,
+    sel: null
+  };
+  tracks.push(track);
+  renderTrack(track);
+  setStatus('Dimuat: ' + track.name + ' (' + decoded.duration.toFixed(2) + 's)');
+  document.getElementById('empty-msg').style.display = 'none';
+}
+
+function renderTrack(t){
+  const div = document.createElement('div');
+  div.className = 'track';
+  div.id = 'track-' + t.id;
+  div.innerHTML = `
+    <div class="track-controls">
+      <div class="track-name" title="${t.name}">${t.name}</div>
+      <div class="track-sub" id="tsub-${t.id}">${t.buffer.duration.toFixed(2)}s</div>
+      <div class="vol-row">
+        <span>Vol</span>
+        <input type="range" min="0" max="150" value="100" oninput="setTrackVol(${t.id},this.value)" style="accent-color:var(--accent)">
+        <span class="vol-val" id="tvol-${t.id}">100%</span>
+      </div>
+      <div class="track-actions">
+        <button class="tbtn" id="tmute-${t.id}" onclick="toggleMute(${t.id})">M</button>
+        <button class="tbtn" id="tsolo-${t.id}" onclick="toggleSolo(${t.id})">S</button>
+        <button class="tbtn" onclick="duplicateTrack(${t.id})">⎘</button>
+        <button class="tbtn red" onclick="removeTrack(${t.id})">✕</button>
+      </div>
+    </div>
+    <div class="waveform-area" id="wave-${t.id}" onmousedown="startSel(event,${t.id})" onmousemove="moveSel(event,${t.id})" onmouseup="endSel(event,${t.id})">
+      <canvas class="waveform" id="canvas-${t.id}"></canvas>
+      <div class="selection-overlay" id="sel-${t.id}"></div>
+      <div class="playhead" id="ph-${t.id}" style="left:0px"></div>
+    </div>`;
+  document.getElementById('track-list').appendChild(div);
+  setTimeout(()=>drawWave(t), 50);
+}
+
+function drawWave(t){
+  const canvas = document.getElementById('canvas-' + t.id);
+  if(!canvas) return;
+  const area = document.getElementById('wave-' + t.id);
+  const W = area.offsetWidth || 400, H = area.offsetHeight || 80;
+  canvas.width = W; canvas.height = H;
+  const c = canvas.getContext('2d');
+  c.clearRect(0,0,W,H);
+  const data = t.buffer.getChannelData(0);
+  const step = Math.ceil(data.length / W);
+  const mid = H / 2;
+  const accent = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#f5a623';
+  const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#0f0f11';
+  c.fillStyle = bg;
+  c.fillRect(0,0,W,H);
+  c.strokeStyle = accent;
+  c.lineWidth = 1;
+  c.beginPath();
+  for(let i=0;i<W;i++){
+    let min=1,max=-1;
+    for(let j=0;j<step;j++){
+      const d = data[i*step+j]||0;
+      if(d<min)min=d; if(d>max)max=d;
+    }
+    const yMin = mid+(min*mid*0.9), yMax = mid+(max*mid*0.9);
+    c.moveTo(i+0.5, yMin);
+    c.lineTo(i+0.5, yMax);
+  }
+  c.stroke();
+  const durFull = t.buffer.duration;
+  const x0 = (t.trimStart/durFull)*W, x1 = (t.trimEnd/durFull)*W;
+  if(t.trimStart>0||t.trimEnd<durFull){
+    c.fillStyle='rgba(0,0,0,0.45)';
+    c.fillRect(0,0,x0,H);
+    c.fillRect(x1,0,W-x1,H);
+  }
+}
+
+let selState = {};
+function startSel(e,id){
+  const area = document.getElementById('wave-' + id);
+  const rect = area.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  selState[id] = {start: x, active: true};
+}
+function moveSel(e,id){
+  if(!selState[id]||!selState[id].active) return;
+  const area = document.getElementById('wave-' + id);
+  const rect = area.getBoundingClientRect();
+  const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+  const x0 = Math.min(selState[id].start, x), x1 = Math.max(selState[id].start, x);
+  const sel = document.getElementById('sel-' + id);
+  sel.style.display = 'block';
+  sel.style.left = x0 + 'px'; sel.style.width = (x1-x0) + 'px';
+  selState[id].end = x;
+}
+function endSel(e,id){
+  if(!selState[id]) return;
+  selState[id].active = false;
+  const area = document.getElementById('wave-' + id);
+  const W = area.offsetWidth;
+  const t = tracks.find(x=>x.id===id);
+  if(!t) return;
+  const x0 = Math.min(selState[id].start, selState[id].end||selState[id].start);
+  const x1 = Math.max(selState[id].start, selState[id].end||selState[id].start);
+  if(x1-x0 < 3){ clearSel(id); return; }
+  const dur = t.buffer.duration;
+  t.sel = { start: (x0/W)*dur, end: (x1/W)*dur };
+  document.getElementById('trim-btn').disabled = false;
+  setStatus(`Seleksi: ${t.sel.start.toFixed(2)}s – ${t.sel.end.toFixed(2)}s (track: ${t.name})`);
+}
+function clearSel(id){
+  const t = tracks.find(x=>x.id===id);
+  if(t) t.sel=null;
+  const sel = document.getElementById('sel-'+id);
+  if(sel) sel.style.display='none';
+  document.getElementById('trim-btn').disabled = true;
+}
+
+function trimSelected(){
+  const t = tracks.find(x=>x.sel);
+  if(!t) return;
+  if(stopAll) stopAll();
+  const sr = t.buffer.sampleRate, ch = t.buffer.numberOfChannels;
+  const startS = Math.floor(t.sel.start * sr), endS = Math.floor(t.sel.end * sr);
+  const len = endS - startS;
+  const nb = ctx.createBuffer(ch, len, sr);
+  for(let c=0;c<ch;c++){
+    const od = t.buffer.getChannelData(c), nd = nb.getChannelData(c);
+    for(let i=0;i<len;i++) nd[i]=od[startS+i]||0;
+  }
+  t.buffer = nb; t.trimStart=0; t.trimEnd=nb.duration; t.sel=null;
+  document.getElementById('tsub-'+t.id).textContent = nb.duration.toFixed(2)+'s';
+  clearSel(t.id); drawWave(t);
+  updateDuration(); setStatus('Trim selesai: ' + t.name);
+}
+
+function setTrackVol(id, val){
+  const t = tracks.find(x=>x.id===id);
+  if(t){ t.volume=val/100; document.getElementById('tvol-'+id).textContent=val+'%'; }
+}
+function toggleMute(id){
+  const t = tracks.find(x=>x.id===id);
+  if(!t) return;
+  t.muted = !t.muted;
+  const btn = document.getElementById('tmute-'+id);
+  btn.classList.toggle('active', t.muted);
+  setStatus(t.name + (t.muted?' dimute':' unmute'));
+}
+function toggleSolo(id){
+  const t = tracks.find(x=>x.id===id);
+  if(!t) return;
+  t.solo = !t.solo;
+  document.getElementById('tsolo-'+id).classList.toggle('active', t.solo);
+}
+function removeTrack(id){
+  const idx = tracks.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  tracks.splice(idx,1);
+  document.getElementById('track-'+id).remove();
+  if(!tracks.length) document.getElementById('empty-msg').style.display='flex';
+  updateButtons(); updateDuration();
+}
+function duplicateTrack(id){
+  const t = tracks.find(x=>x.id===id);
+  if(!t) return;
+  const newT = {...t, id:++trackIdCounter, name:t.name+' (copy)', sel:null};
+  tracks.push(newT); renderTrack(newT);
+  updateButtons(); updateDuration();
+}
+
+let sources = [];
+function playPause(){
+  ctx.resume();
+  if(isPlaying){ pauseAll(); return; }
+  isPlaying=true; document.getElementById('play-btn').textContent='⏸ Pause';
+  playStartTime = ctx.currentTime - playOffset;
+  const hasSolo = tracks.some(t=>t.solo);
+  sources = [];
+  tracks.forEach(t=>{
+    if(t.muted||(hasSolo&&!t.solo)) return;
+    const s = ctx.createBufferSource();
+    s.buffer = t.buffer;
+    const g = ctx.createGain();
+    g.gain.value = t.volume;
+    s.connect(g); g.connect(masterGain);
+    s.start(0, playOffset);
+    s.onended = ()=>{ if(isPlaying){ isPlaying=false; playOffset=0; document.getElementById('play-btn').textContent='▶ Play'; cancelAnimationFrame(animFrame); updateSeek(0); } };
+    sources.push(s);
+  });
+  animatePlayhead();
+}
+function pauseAll(){
+  isPlaying=false; playOffset = ctx.currentTime - playStartTime;
+  sources.forEach(s=>{try{s.stop();}catch(e){}});
+  sources=[]; document.getElementById('play-btn').textContent='▶ Play';
+  cancelAnimationFrame(animFrame);
+}
+function stopAll(){
+  isPlaying=false; playOffset=0;
+  sources.forEach(s=>{try{s.stop();}catch(e){}});
+  sources=[]; document.getElementById('play-btn').textContent='▶ Play';
+  cancelAnimationFrame(animFrame); updateSeek(0);
+  tracks.forEach(t=>{ const ph=document.getElementById('ph-'+t.id); if(ph) ph.style.left='0px'; });
+}
+function seekTo(val){
+  const dur = getMaxDuration();
+  playOffset = (val/100)*dur;
+  if(isPlaying){ pauseAll(); playPause(); }
+  updateTimeDisplay(playOffset);
+}
+function setMasterVol(val){
+  masterGain.gain.value = val/100;
+  document.getElementById('mvol-val').textContent = val+'%';
+}
+function animatePlayhead(){
+  animFrame = requestAnimationFrame(()=>{
+    if(!isPlaying) return;
+    const cur = ctx.currentTime - playStartTime;
+    const dur = getMaxDuration();
+    updateSeek(cur/dur*100);
+    updateTimeDisplay(cur);
+    tracks.forEach(t=>{
+      const area=document.getElementById('wave-'+t.id);
+      const ph=document.getElementById('ph-'+t.id);
+      if(area&&ph) ph.style.left=((cur/t.buffer.duration)*area.offsetWidth)+'px';
+    });
+    if(cur < dur) animatePlayhead();
+    else stopAll();
+  });
+}
+function updateSeek(pct){ document.getElementById('seek-bar').value = Math.min(pct,100); }
+function updateTimeDisplay(sec){
+  const m=Math.floor(sec/60), s=(sec%60).toFixed(1).padStart(4,'0');
+  document.getElementById('time-display').textContent = m+':'+s;
+}
+function getMaxDuration(){ return tracks.reduce((a,t)=>Math.max(a,t.buffer.duration),0); }
+function updateDuration(){
+  const dur = getMaxDuration();
+  const m=Math.floor(dur/60), s=Math.floor(dur%60).toString().padStart(2,'0');
+  document.getElementById('total-dur').textContent = '/ '+m+':'+s;
+  document.getElementById('proj-dur').textContent = tracks.length + ' track';
+}
+function updateButtons(){
+  const has = tracks.length>0;
+  document.getElementById('merge-btn').disabled = tracks.length<2;
+  document.getElementById('export-btn').disabled = !has;
+}
+function mergeAll(){
+  if(tracks.length<2){ setStatus('Perlu minimal 2 track untuk digabungkan.'); return; }
+  const sr = tracks[0].buffer.sampleRate, ch=2;
+  const totalLen = tracks.reduce((a,t)=>a+t.buffer.length,0);
+  const nb = ctx.createBuffer(ch, totalLen, sr);
+  let offset=0;
+  tracks.forEach(t=>{
+    for(let c2=0;c2<ch;c2++){
+      const src = t.buffer.numberOfChannels>c2 ? t.buffer.getChannelData(c2) : t.buffer.getChannelData(0);
+      const dst = nb.getChannelData(c2);
+      for(let i=0;i<t.buffer.length;i++) dst[offset+i]=(dst[offset+i]||0)+src[i]*t.volume;
+    }
+    offset += t.buffer.length;
+  });
+  tracks.forEach(t=>{ document.getElementById('track-'+t.id).remove(); });
+  tracks=[]; trackIdCounter++;
+  const merged={id:trackIdCounter,name:'merged',buffer:nb,volume:1,muted:false,solo:false,trimStart:0,trimEnd:nb.duration,sel:null};
+  tracks.push(merged); renderTrack(merged);
+  document.getElementById('empty-msg').style.display='none';
+  updateButtons(); updateDuration(); setStatus('Semua track berhasil digabungkan!');
+}
+
+function showExport(){ if(!tracks.length) return; document.getElementById('export-modal').style.display='flex'; }
+function closeExport(){ document.getElementById('export-modal').style.display='none'; document.getElementById('export-progress').style.display='none'; }
+
+async function doExport(){
+  const mode = document.getElementById('export-mode').value;
+  const fmt = document.getElementById('export-format').value;
+  const fname = document.getElementById('export-name').value || 'output';
+  document.getElementById('export-progress').style.display='block';
+  document.getElementById('export-status-txt').textContent='Memproses audio...';
+  document.getElementById('prog-fill').style.width='20%';
+  await new Promise(r=>setTimeout(r,30));
+  let finalBuf;
+  if(mode==='mix'){
+    const maxLen = Math.max(...tracks.map(t=>t.buffer.length));
+    const sr = tracks[0].buffer.sampleRate;
+    const nb = ctx.createBuffer(2, maxLen, sr);
+    tracks.forEach(t=>{
+      if(t.muted) return;
+      for(let c=0;c<2;c++){
+        const src=t.buffer.numberOfChannels>c?t.buffer.getChannelData(c):t.buffer.getChannelData(0);
+        const dst=nb.getChannelData(c);
+        for(let i=0;i<t.buffer.length;i++) dst[i]+=(src[i]||0)*t.volume;
+      }
+    }); finalBuf=nb;
+  } else {
+    const sr=tracks[0].buffer.sampleRate;
+    const total=tracks.reduce((a,t)=>a+t.buffer.length,0);
+    const nb=ctx.createBuffer(2,total,sr); let off=0;
+    tracks.forEach(t=>{
+      if(t.muted) return;
+      for(let c=0;c<2;c++){
+        const src=t.buffer.numberOfChannels>c?t.buffer.getChannelData(c):t.buffer.getChannelData(0);
+        const dst=nb.getChannelData(c);
+        for(let i=0;i<t.buffer.length;i++) dst[off+i]=(src[i]||0)*t.volume;
+      } off+=t.buffer.length;
+    }); finalBuf=nb;
+  }
+  document.getElementById('prog-fill').style.width='60%';
+  document.getElementById('export-status-txt').textContent='Encoding...';
+  await new Promise(r=>setTimeout(r,30));
+  if(fmt==='wav'){
+    const wav = bufferToWav(finalBuf);
+    document.getElementById('prog-fill').style.width='90%';
+    await new Promise(r=>setTimeout(r,30));
+    const blob=new Blob([wav],{type:'audio/wav'});
+    downloadBlob(blob, fname+'.wav');
+  } else {
+    const offCtx=new OfflineAudioContext(finalBuf.numberOfChannels,finalBuf.length,finalBuf.sampleRate);
+    const src=offCtx.createBufferSource(); src.buffer=finalBuf; src.connect(offCtx.destination); src.start();
+    const rendered=await offCtx.startRendering();
+    const dest=ctx.createMediaStreamDestination();
+    const srcN=ctx.createBufferSource(); srcN.buffer=rendered; srcN.connect(dest); srcN.start();
+    const mr=new MediaRecorder(dest.stream,{mimeType:'audio/webm'});
+    const chunks=[];
+    mr.ondataavailable=e=>chunks.push(e.data);
+    mr.onstop=()=>{
+      const blob=new Blob(chunks,{type:'audio/webm'});
+      downloadBlob(blob, fname+'.webm');
+      document.getElementById('prog-fill').style.width='100%';
+      document.getElementById('export-status-txt').textContent='Selesai!';
+      setTimeout(closeExport, 1500);
+    };
+    mr.start(); srcN.onended=()=>mr.stop();
+    return;
+  }
+  document.getElementById('prog-fill').style.width='100%';
+  document.getElementById('export-status-txt').textContent='Selesai! File sedang diunduh.';
+  setTimeout(closeExport, 1500);
+}
+
+function bufferToWav(buf){
+  const nCh=buf.numberOfChannels, sr=buf.sampleRate, len=buf.length;
+  const ab=new ArrayBuffer(44+len*nCh*2), v=new DataView(ab);
+  const w=(o,s)=>{for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i));};
+  w(0,'RIFF'); v.setUint32(4,36+len*nCh*2,true); w(8,'WAVE'); w(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,nCh,true);
+  v.setUint32(24,sr,true); v.setUint32(28,sr*nCh*2,true); v.setUint16(32,nCh*2,true);
+  v.setUint16(34,16,true); w(36,'data'); v.setUint32(40,len*nCh*2,true);
+  let off=44;
+  for(let i=0;i<len;i++) for(let c=0;c<nCh;c++){
+    const s=Math.max(-1,Math.min(1,buf.getChannelData(c)[i]));
+    v.setInt16(off,s<0?s*32768:s*32767,true); off+=2;
+  }
+  return ab;
+}
+function downloadBlob(blob, name){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+}
+function setStatus(msg){ document.getElementById('status').textContent = msg; }
+
+window.addEventListener('resize', ()=>tracks.forEach(t=>drawWave(t)));
+</script>
+</body>
+</html>

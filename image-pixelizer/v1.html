@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PIXELIZER — Image to Pixel Art</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3e;
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --accent3: #06b6d4;
+    --text: #e8e8f0;
+    --text-muted: #6b6b8a;
+    --success: #10b981;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .header {
+    padding: 2rem 3rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-badge {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    min-height: calc(100vh - 73px);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background: var(--surface);
+    overflow-y: auto;
+    max-height: calc(100vh - 73px);
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(124, 58, 237, 0.08);
+  }
+
+  .drop-zone.has-image {
+    padding: 0;
+    border-style: solid;
+    border-color: var(--accent);
+  }
+
+  .drop-zone.has-image img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
+  }
+
+  .drop-zone.has-image .drop-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10,10,15,0.7);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .drop-zone.has-image:hover .drop-overlay { opacity: 1; }
+
+  .drop-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    display: block;
+    filter: grayscale(0.4);
+  }
+
+  .drop-text {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .drop-text strong { color: var(--accent2); }
+
+  input[type="file"] { display: none; }
+
+  /* Presets */
+  .presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+
+  .preset-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    padding: 0.5rem 0.25rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent2);
+    background: rgba(124, 58, 237, 0.1);
+  }
+
+  .preset-btn.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* Slider controls */
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .control-label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .control-value {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--accent2);
+    min-width: 42px;
+    text-align: right;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent2);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+    transition: box-shadow 0.2s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 14px rgba(168, 85, 247, 0.8);
+  }
+
+  .lock-ratio {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .lock-ratio input[type="checkbox"] { display: none; }
+
+  .toggle {
+    width: 34px;
+    height: 18px;
+    background: var(--border);
+    border-radius: 9px;
+    position: relative;
+    transition: background 0.2s;
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 12px;
+    height: 12px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .lock-ratio input:checked + .toggle { background: var(--accent); }
+  .lock-ratio input:checked + .toggle::after {
+    left: 19px;
+    background: #fff;
+  }
+
+  /* Generate button */
+  .gen-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    color: #fff;
+    border: none;
+    padding: 1rem;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gen-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .gen-btn:hover::before { opacity: 1; }
+  .gen-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(124,58,237,0.4); }
+  .gen-btn:active { transform: translateY(0); }
+  .gen-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* Download buttons */
+  .download-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .dl-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 0.7rem 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  .dl-btn:hover:not(:disabled) {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    background: rgba(6, 182, 212, 0.08);
+  }
+
+  .dl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .dl-btn .fmt { display: block; font-size: 1rem; margin-bottom: 2px; }
+
+  /* ── PREVIEW AREA ── */
+  .preview-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    position: relative;
+    min-height: 500px;
+  }
+
+  .preview-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+  }
+
+  .preview-wrap {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 800px;
+  }
+
+  .canvas-container {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 24px 80px rgba(0,0,0,0.6),
+      0 0 60px rgba(124,58,237,0.1);
+    transition: all 0.3s ease;
+    max-width: 100%;
+  }
+
+  #outputCanvas {
+    display: block;
+    max-width: min(700px, 100%);
+    max-height: 60vh;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  .empty-state {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .empty-state .big-icon {
+    font-size: 5rem;
+    display: block;
+    margin-bottom: 1.5rem;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .empty-state h2 {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 1.6rem;
+    background: linear-gradient(135deg, var(--text), var(--text-muted));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state p {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 2rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .stat strong { color: var(--accent2); font-size: 1rem; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--success);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    padding: 0.7rem 1.2rem;
+    border-radius: 8px;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  @media (max-width: 800px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar { max-height: none; }
+    .header { padding: 1.25rem 1.5rem; }
+    .preview-area { padding: 2rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <div class="logo">PIXELIZER</div>
+  </div>
+  <div class="logo-badge">v1.0</div>
+  <div class="header-right">IMAGE → PIXEL ART CONVERTER</div>
+</header>
+
+<main class="main">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Upload -->
+    <div>
+      <div class="section-label">01 — Upload Gambar</div>
+      <div class="drop-zone" id="dropZone">
+        <span class="drop-icon">🖼️</span>
+        <div class="drop-text">
+          <strong>Klik atau seret gambar</strong><br>
+          JPG, PNG, WebP, GIF<br>
+          Max 20MB
+        </div>
+        <div class="drop-overlay">
+          <span style="font-size:0.8rem;font-family:var(--mono);color:#fff;">Ganti Gambar</span>
+        </div>
+        <img id="thumbImg" style="display:none">
+      </div>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <!-- Presets -->
+    <div>
+      <div class="section-label">02 — Preset Ukuran</div>
+      <div class="presets">
+        <button class="preset-btn" data-cols="8" data-rows="8">8×8</button>
+        <button class="preset-btn" data-cols="16" data-rows="16">16×16</button>
+        <button class="preset-btn" data-cols="32" data-rows="32">32×32</button>
+        <button class="preset-btn" data-cols="64" data-rows="64">64×64</button>
+        <button class="preset-btn" data-cols="128" data-rows="128">128×128</button>
+        <button class="preset-btn" data-cols="24" data-rows="16">24×16</button>
+        <button class="preset-btn" data-cols="48" data-rows="32">48×32</button>
+        <button class="preset-btn" data-cols="0" data-rows="0">Custom</button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div>
+      <div class="section-label">03 — Ukuran Pixel Grid</div>
+      <div class="control-group">
+        <div class="control-row">
+          <span class="control-label">Kolom (lebar)</span>
+          <span class="control-value" id="colsVal">32</span>
+        </div>
+        <input type="range" id="colsSlider" min="4" max="256" value="32" step="1">
+
+        <div style="height:0.6rem"></div>
+
+        <div class="control-row">
+          <span class="control-label">Baris (tinggi)</span>
+          <span class="control-value" id="rowsVal">32</span>
+        </div>
+        <input type="range" id="rowsSlider" min="4" max="256" value="32" step="1">
+
+        <div style="height:0.25rem"></div>
+        <label class="lock-ratio">
+          <input type="checkbox" id="lockRatio" checked>
+          <div class="toggle"></div>
+          Kunci rasio aspek
+        </label>
+      </div>
+    </div>
+
+    <!-- Generate -->
+    <div>
+      <div class="section-label">04 — Generate</div>
+      <button class="gen-btn" id="genBtn" disabled>▶ PIXELATE</button>
+    </div>
+
+    <!-- Download -->
+    <div>
+      <div class="section-label">05 — Download</div>
+      <div class="download-group">
+        <button class="dl-btn" id="dlJpg" disabled>
+          <span class="fmt">⬇</span>JPG
+        </button>
+        <button class="dl-btn" id="dlPng" disabled>
+          <span class="fmt">⬇</span>PNG
+        </button>
+        <button class="dl-btn" id="dlSvg" disabled>
+          <span class="fmt">⬇</span>SVG
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- PREVIEW -->
+  <section class="preview-area">
+    <div class="preview-grid-bg"></div>
+
+    <div class="preview-wrap">
+      <div class="empty-state" id="emptyState">
+        <span class="big-icon">🎮</span>
+        <h2>Upload gambar<br>untuk memulai</h2>
+        <p>Seret file ke panel kiri, atau klik area upload<br>
+        Hasil pixel art akan muncul di sini secara real-time</p>
+      </div>
+
+      <div class="canvas-container" id="canvasWrap" style="display:none">
+        <canvas id="outputCanvas"></canvas>
+      </div>
+
+      <div class="stats-bar" id="statsBar" style="display:none">
+        <div class="stat"><strong id="statCols">—</strong>kolom</div>
+        <div class="stat"><strong id="statRows">—</strong>baris</div>
+        <div class="stat"><strong id="statTotal">—</strong>pixel</div>
+        <div class="stat"><strong id="statSize">—</strong>ukuran output</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- Hidden canvas for processing -->
+<canvas id="srcCanvas" style="display:none"></canvas>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+const thumbImg = document.getElementById('thumbImg');
+const colsSlider = document.getElementById('colsSlider');
+const rowsSlider = document.getElementById('rowsSlider');
+const colsVal = document.getElementById('colsVal');
+const rowsVal = document.getElementById('rowsVal');
+const lockRatio = document.getElementById('lockRatio');
+const genBtn = document.getElementById('genBtn');
+const dlJpg = document.getElementById('dlJpg');
+const dlPng = document.getElementById('dlPng');
+const dlSvg = document.getElementById('dlSvg');
+const outputCanvas = document.getElementById('outputCanvas');
+const srcCanvas = document.getElementById('srcCanvas');
+const canvasWrap = document.getElementById('canvasWrap');
+const emptyState = document.getElementById('emptyState');
+const statsBar = document.getElementById('statsBar');
+const toast = document.getElementById('toast');
+
+let srcImg = null;
+let originalAspect = 1;
+let isUpdating = false;
+let debounceTimer = null;
+let hasOutput = false;
+
+// ── File handling ──
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => loadImage(e.target.files[0]));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
+});
+
+function loadImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    srcImg = img;
+    originalAspect = img.width / img.height;
+    // Show thumbnail
+    thumbImg.src = url;
+    thumbImg.style.display = 'block';
+    dropZone.classList.add('has-image');
+    genBtn.disabled = false;
+    // Auto set rows based on aspect ratio
+    const cols = parseInt(colsSlider.value);
+    if (lockRatio.checked) {
+      const newRows = Math.max(4, Math.round(cols / originalAspect));
+      isUpdating = true;
+      rowsSlider.value = Math.min(256, newRows);
+      rowsVal.textContent = rowsSlider.value;
+      isUpdating = false;
+    }
+    autoPixelate();
+  };
+  img.src = url;
+}
+
+// ── Presets ──
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cols = parseInt(btn.dataset.cols);
+    const rows = parseInt(btn.dataset.rows);
+    if (cols === 0) return; // custom
+    isUpdating = true;
+    colsSlider.value = cols;
+    rowsSlider.value = rows;
+    colsVal.textContent = cols;
+    rowsVal.textContent = rows;
+    isUpdating = false;
+    if (srcImg) autoPixelate();
+  });
+});
+
+// ── Sliders ──
+colsSlider.addEventListener('input', () => {
+  const v = parseInt(colsSlider.value);
+  colsVal.textContent = v;
+  if (!isUpdating && lockRatio.checked && srcImg) {
+    isUpdating = true;
+    const newRows = Math.max(4, Math.min(256, Math.round(v / originalAspect)));
+    rowsSlider.value = newRows;
+    rowsVal.textContent = newRows;
+    isUpdating = false;
+  }
+  clearPresets();
+  if (srcImg) debouncedPixelate();
+});
+
+rowsSlider.addEventListener('input', () => {
+  const v = parseInt(rowsSlider.value);
+  rowsVal.textContent = v;
+  if (!isUpdating && lockRatio.checked && srcImg) {
+    isUpdating = true;
+    const newCols = Math.max(4, Math.min(256, Math.round(v * originalAspect)));
+    colsSlider.value = newCols;
+    colsVal.textContent = newCols;
+    isUpdating = false;
+  }
+  clearPresets();
+  if (srcImg) debouncedPixelate();
+});
+
+function clearPresets() {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+}
+
+function debouncedPixelate() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(autoPixelate, 80);
+}
+
+function autoPixelate() {
+  if (!srcImg) return;
+  pixelate();
+}
+
+// ── Core pixelation ──
+function pixelate() {
+  if (!srcImg) return;
+  const cols = parseInt(colsSlider.value);
+  const rows = parseInt(rowsSlider.value);
+
+  const ctx = srcCanvas.getContext('2d', { willReadFrequently: true });
+  srcCanvas.width = cols;
+  srcCanvas.height = rows;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(srcImg, 0, 0, cols, rows);
+
+  // Scale up for display (make each pixel block visible)
+  const BLOCK = Math.max(2, Math.floor(Math.min(700, window.innerWidth - 400) / cols));
+  const outW = cols * BLOCK;
+  const outH = rows * BLOCK;
+
+  const outCtx = outputCanvas.getContext('2d');
+  outputCanvas.width = outW;
+  outputCanvas.height = outH;
+
+  const pixelData = ctx.getImageData(0, 0, cols, rows);
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = (y * cols + x) * 4;
+      const r = pixelData.data[i];
+      const g = pixelData.data[i+1];
+      const b = pixelData.data[i+2];
+      const a = pixelData.data[i+3] / 255;
+      outCtx.fillStyle = `rgba(${r},${g},${b},${a})`;
+      outCtx.fillRect(x * BLOCK, y * BLOCK, BLOCK, BLOCK);
+    }
+  }
+
+  // Show result
+  emptyState.style.display = 'none';
+  canvasWrap.style.display = 'block';
+  statsBar.style.display = 'flex';
+
+  document.getElementById('statCols').textContent = cols;
+  document.getElementById('statRows').textContent = rows;
+  document.getElementById('statTotal').textContent = (cols * rows).toLocaleString();
+  document.getElementById('statSize').textContent = `${outW}×${outH}px`;
+
+  hasOutput = true;
+  dlJpg.disabled = false;
+  dlPng.disabled = false;
+  dlSvg.disabled = false;
+}
+
+genBtn.addEventListener('click', pixelate);
+
+// ── Downloads ──
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+dlJpg.addEventListener('click', () => {
+  if (!hasOutput) return;
+  const a = document.createElement('a');
+  a.download = 'pixelart.jpg';
+  a.href = outputCanvas.toDataURL('image/jpeg', 0.95);
+  a.click();
+  showToast('✓ JPG berhasil diunduh!');
+});
+
+dlPng.addEventListener('click', () => {
+  if (!hasOutput) return;
+  const a = document.createElement('a');
+  a.download = 'pixelart.png';
+  a.href = outputCanvas.toDataURL('image/png');
+  a.click();
+  showToast('✓ PNG berhasil diunduh!');
+});
+
+dlSvg.addEventListener('click', () => {
+  if (!hasOutput) return;
+  const cols = parseInt(colsSlider.value);
+  const rows = parseInt(rowsSlider.value);
+
+  const ctx = srcCanvas.getContext('2d', { willReadFrequently: true });
+  srcCanvas.width = cols;
+  srcCanvas.height = rows;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(srcImg, 0, 0, cols, rows);
+  const pixelData = ctx.getImageData(0, 0, cols, rows);
+
+  const BLOCK = 10; // 10px per pixel in SVG
+  const svgW = cols * BLOCK;
+  const svgH = rows * BLOCK;
+
+  let rects = '';
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = (y * cols + x) * 4;
+      const r = pixelData.data[i];
+      const g = pixelData.data[i+1];
+      const b = pixelData.data[i+2];
+      const a = (pixelData.data[i+3] / 255).toFixed(3);
+      rects += `<rect x="${x*BLOCK}" y="${y*BLOCK}" width="${BLOCK}" height="${BLOCK}" fill="rgba(${r},${g},${b},${a})"/>`;
+    }
+  }
+
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">
+${rects}
+</svg>`;
+
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.download = 'pixelart.svg';
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ SVG berhasil diunduh!');
+});
+
+// ── Paste from clipboard ──
+document.addEventListener('paste', e => {
+  const item = [...e.clipboardData.items].find(i => i.type.startsWith('image/'));
+  if (item) loadImage(item.getAsFile());
+});
+
+// init
+colsVal.textContent = colsSlider.value;
+rowsVal.textContent = rowsSlider.value;
+</script>
+</body>
+</html>

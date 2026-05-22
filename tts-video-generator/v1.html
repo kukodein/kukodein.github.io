@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Islam Narasi Video Editor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0f0f0f;color:#e8e8e8;min-height:100vh;overflow-x:hidden}
+:root{--gold:#c8a951;--gold-dim:#7a6330;--gold-bg:rgba(200,169,81,0.1);--surface:#1a1a1a;--surface2:#222;--surface3:#2a2a2a;--border:#333;--text:#e8e8e8;--muted:#888;--danger:#e24b4a;--success:#3b9e75;--info:#378add}
+header{background:#111;border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:12px;flex-wrap:wrap}
+.header-left{display:flex;align-items:center;gap:12px}
+header h1{font-size:15px;font-weight:700;color:var(--gold);letter-spacing:0.5px;white-space:nowrap}
+.meta-chip{background:var(--surface2);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:11px}
+.toolbar{display:flex;gap:6px;padding:10px 14px;background:#111;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.btn{padding:7px 13px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:7px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:5px;transition:all 0.15s;white-space:nowrap;font-family:inherit}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.btn:active{transform:scale(0.97)}
+.btn.primary{background:var(--gold);color:#000;border-color:var(--gold);font-weight:700}
+.btn.primary:hover{background:#dbb95e;color:#000;border-color:#dbb95e}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn.info{border-color:var(--info);color:var(--info)}
+.btn.info:hover{background:rgba(55,138,221,0.1)}
+.btn:disabled{opacity:0.45;cursor:not-allowed;transform:none}
+.toolbar-sep{width:1px;height:24px;background:var(--border);margin:0 2px}
+.layout{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 100px)}
+@media(max-width:800px){.layout{grid-template-columns:1fr;height:auto}}
+.sessions-panel{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.panel-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px}
+.session-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color 0.2s}
+.session-card.active{border-color:var(--gold)}
+.session-header{padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--surface2);user-select:none}
+.session-number{width:24px;height:24px;border-radius:50%;background:var(--gold-dim);color:var(--gold);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.session-title-input{flex:1;background:transparent;border:none;color:var(--text);font-size:13px;font-weight:500;outline:none;min-width:0}
+.session-title-input::placeholder{color:var(--muted)}
+.session-actions{display:flex;gap:3px;flex-shrink:0}
+.icon-btn{width:26px;height:26px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-family:inherit;font-size:11px}
+.icon-btn:hover{background:var(--surface3);color:var(--text);border-color:var(--border)}
+.icon-btn.del:hover{color:var(--danger);border-color:var(--danger)}
+.icon-btn.dup:hover{color:var(--info);border-color:var(--info)}
+.session-body{padding:12px;display:flex;flex-direction:column;gap:10px}
+.field-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px}
+.upload-zone{border:1.5px dashed var(--border);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden}
+.upload-zone:hover{border-color:var(--gold);background:var(--gold-bg)}
+.upload-zone.has-file{border-style:solid;border-color:var(--success);background:rgba(59,158,117,0.07)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone .uz-icon{font-size:18px;margin-bottom:3px}
+.upload-zone .uz-text{font-size:11px;color:var(--muted)}
+.upload-zone .uz-name{font-size:11px;color:var(--success);font-weight:600;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;margin:3px auto 0}
+.anim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.anim-opt{padding:5px 3px;border:1px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;font-size:9px;color:var(--muted);transition:all 0.15s;line-height:1.3}
+.anim-opt:hover{border-color:var(--gold);color:var(--gold)}
+.anim-opt.selected{border-color:var(--gold);background:var(--gold-bg);color:var(--gold);font-weight:700}
+.anim-opt .anim-icon{font-size:13px;display:block;margin-bottom:2px}
+.preview-panel{background:#111;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+@media(max-width:800px){.preview-panel{border-left:none;border-top:1px solid var(--border)}}
+.preview-screen{background:#000;aspect-ratio:16/9;position:relative;overflow:hidden;margin:12px;border-radius:8px;border:1px solid var(--border)}
+#previewCanvas{width:100%;height:100%;display:block}
+.preview-overlay-label{position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,0.6);color:var(--gold);font-size:10px;padding:2px 7px;border-radius:4px;pointer-events:none;display:none}
+.preview-pbar{height:3px;background:var(--border);margin:0 12px}
+.preview-pbar-fill{height:100%;background:var(--gold);width:0%;transition:width 0.1s linear;border-radius:2px}
+.preview-controls{padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap}
+.preview-controls .btn{flex:1;justify-content:center;min-width:54px}
+.export-progress{padding:0 12px 8px;display:none;flex-direction:column;gap:4px}
+.export-pbar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.export-pbar-fill{height:100%;background:var(--gold);width:0%;border-radius:2px;transition:width 0.15s}
+.export-lbl{font-size:11px;color:var(--muted);text-align:center}
+.global-settings{padding:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:9px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.setting-row label{font-size:12px;color:var(--muted);flex-shrink:0}
+.vol-row{display:flex;align-items:center;gap:7px}
+.vol-row label{font-size:11px;color:var(--muted);width:55px;flex-shrink:0}
+.vol-row input[type=range]{flex:1;accent-color:var(--gold)}
+.vol-row span{font-size:11px;color:var(--text);min-width:30px;text-align:right}
+input[type=range]{accent-color:var(--gold)}
+.upload-zone-sm{border:1px dashed var(--border);border-radius:7px;padding:8px;text-align:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;font-size:11px;color:var(--muted)}
+.upload-zone-sm:hover{border-color:var(--gold);color:var(--gold)}
+.upload-zone-sm.has-file{border-color:var(--success);color:var(--success)}
+.upload-zone-sm input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.mini-input{background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;outline:none;width:100%;font-family:inherit}
+.mini-input:focus{border-color:var(--gold)}
+select.mini-input{cursor:pointer}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.color-row{display:flex;align-items:center;gap:7px}
+.color-row label{font-size:11px;color:var(--muted);flex:1}
+.color-row input[type=color]{width:32px;height:24px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:none;padding:0}
+.checkbox-row{display:flex;align-items:center;gap:7px;cursor:pointer}
+.checkbox-row input[type=checkbox]{accent-color:var(--gold);width:14px;height:14px;cursor:pointer}
+.checkbox-row label{font-size:12px;color:var(--muted);cursor:pointer}
+.dur-row{display:flex;align-items:center;gap:7px}
+.dur-row input[type=range]{flex:1;accent-color:var(--gold)}
+.dur-row span{font-size:11px;color:var(--text);min-width:28px;text-align:right}
+.tab-bar{display:flex;border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0;border-radius:4px 4px 0 0;overflow:hidden}
+.tab{flex:1;padding:7px 2px;text-align:center;font-size:11px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.15s}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:700}
+.tab-content{display:none;flex-direction:column;gap:8px;padding-top:4px}
+.tab-content.active{display:flex}
+.session-preview-mini{width:100%;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#000;border:1px solid var(--border);position:relative;display:flex;align-items:center;justify-content:center}
+.session-preview-mini img{width:100%;height:100%;object-fit:cover;opacity:0.75}
+.session-preview-mini .mini-lbl{position:absolute;bottom:4px;left:5px;font-size:9px;color:rgba(255,255,255,0.75);background:rgba(0,0,0,0.55);padding:2px 5px;border-radius:3px}
+.notif{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;animation:slideUp 0.25s ease;display:none;max-width:280px}
+.notif.success{background:#0f2d1e;color:#4cdb95;border:1px solid #1a5c3a}
+.notif.error{background:#2d0f0f;color:#f07070;border:1px solid #5c1a1a}
+.notif.info{background:#0f1e2d;color:#70b8f0;border:1px solid #1a3d5c}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;color:var(--muted);text-align:center;gap:10px}
+.empty-state .es-icon{font-size:36px;opacity:0.3}
+.empty-state p{font-size:13px;line-height:1.6}
+</style>
+</head>
+<body>
+<h2 style="position:absolute;left:-9999px">Islam Narasi Video Editor</h2>
+
+<header>
+  <div class="header-left">
+    <h1>&#9654; Islam Narasi Editor</h1>
+    <span class="meta-chip" id="sessionCount">0 sesi</span>
+    <span class="meta-chip" id="totalDurChip">0s total</span>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="btn primary" onclick="addSession()">&#43; Tambah Sesi</button>
+  <div class="toolbar-sep"></div>
+  <button class="btn" onclick="previewAll()" id="previewBtn">&#9654; Preview</button>
+  <button class="btn danger" onclick="stopPreview()" id="stopBtn" style="display:none">&#9632; Stop</button>
+  <div class="toolbar-sep"></div>
+  <button class="btn primary" onclick="exportVideo()" id="exportBtn">&#8595; Export WebM</button>
+  <button class="btn info" onclick="captureThumbnail()">&#128247; Thumbnail</button>
+  <div class="toolbar-sep"></div>
+  <button class="btn" onclick="exportSettings()">&#8595; Export JSON</button>
+  <label class="btn" style="cursor:pointer">&#8593; Import JSON<input type="file" accept=".json" style="display:none" onchange="importSettings(event)"></label>
+</div>
+
+<div class="layout">
+  <div class="sessions-panel" id="sessionsPanel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+      <span class="panel-title">Sesi Video</span>
+      <span style="font-size:11px;color:var(--muted)">Klik kartu buka/tutup</span>
+    </div>
+    <div class="empty-state" id="emptyState">
+      <div class="es-icon">&#127916;</div>
+      <p>Belum ada sesi.<br>Klik "Tambah Sesi" untuk mulai.</p>
+    </div>
+  </div>
+
+  <div class="preview-panel">
+    <div class="preview-screen">
+      <canvas id="previewCanvas"></canvas>
+      <div class="preview-overlay-label" id="previewLabel"></div>
+    </div>
+    <div class="preview-pbar"><div class="preview-pbar-fill" id="previewFill"></div></div>
+    <div class="preview-controls">
+      <button class="btn" onclick="previewAll()" id="previewBtn2">&#9654; Play All</button>
+      <button class="btn danger" onclick="stopPreview()" id="stopBtn2" style="display:none">&#9632; Stop</button>
+      <button class="btn info" onclick="captureThumbnail()" title="Export thumbnail dari frame saat ini">&#128247;</button>
+    </div>
+    <div class="export-progress" id="exportProgress">
+      <div class="export-pbar"><div class="export-pbar-fill" id="exportFill"></div></div>
+      <div class="export-lbl" id="exportLbl">Merender...</div>
+    </div>
+
+    <div class="global-settings">
+      <div class="panel-title" style="margin-bottom:4px">Pengaturan Global</div>
+      <div>
+        <div class="field-label">Audio Background</div>
+        <div class="upload-zone-sm" id="bgAudioZone">
+          <input type="file" accept="audio/*" onchange="setBgAudio(event)">
+          <span id="bgAudioLbl">&#127925; Upload audio background</span>
+        </div>
+        <div class="vol-row" style="margin-top:6px">
+          <label>Volume BG</label>
+          <input type="range" min="0" max="100" value="30" id="bgVolume" oninput="document.getElementById('bgVolVal').textContent=this.value+'%'">
+          <span id="bgVolVal">30%</span>
+        </div>
+        <div class="checkbox-row" style="margin-top:4px">
+          <input type="checkbox" id="bgFade" checked>
+          <label for="bgFade">Fade in/out audio background</label>
+        </div>
+      </div>
+      <div class="setting-row">
+        <label>Resolusi</label>
+        <select class="mini-input" id="resolution" style="width:auto" onchange="updateResolution()">
+          <option value="1280x720">HD 720p</option>
+          <option value="1920x1080" selected>FHD 1080p</option>
+          <option value="2560x1440">QHD 1440p</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>FPS</label>
+        <select class="mini-input" id="fps" style="width:auto">
+          <option value="24">24 fps</option>
+          <option value="30" selected>30 fps</option>
+          <option value="60">60 fps</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>Transisi</label>
+        <select class="mini-input" id="globalTransition" style="width:auto">
+          <option value="fade">Fade to black</option>
+          <option value="cut">Cut</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>Durasi transisi</label>
+        <select class="mini-input" id="transitionDur" style="width:auto">
+          <option value="0.3">Cepat 0.3s</option>
+          <option value="0.6" selected>Normal 0.6s</option>
+          <option value="1.0">Lambat 1.0s</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+const ANIMS=[
+  {id:'kenburns-in',label:'Zoom In',icon:'&#128269;'},
+  {id:'kenburns-out',label:'Zoom Out',icon:'&#128270;'},
+  {id:'pan-left',label:'Pan Kiri',icon:'&#8592;'},
+  {id:'pan-right',label:'Pan Kanan',icon:'&#8594;'},
+  {id:'pan-up',label:'Pan Atas',icon:'&#8593;'},
+  {id:'pan-down',label:'Pan Bawah',icon:'&#8595;'},
+  {id:'fade',label:'Fade',icon:'&#9728;'},
+  {id:'static',label:'Static',icon:'&#9632;'},
+  {id:'random',label:'Random',icon:'&#9733;'},
+];
+const ANIM_IDS=ANIMS.filter(a=>a.id!=='random').map(a=>a.id);
+
+let sessions=[],bgAudioUrl=null,previewActive=false,previewRAF=null;
+let previewAudio=null,previewBgAudio=null,previewSessionIdx=0,previewStartTime=null;
+let mediaRecorder=null,recordedChunks=[];
+
+const canvas=document.getElementById('previewCanvas');
+const ctx=canvas.getContext('2d');
+canvas.width=1920;canvas.height=1080;
+
+function showNotif(msg,type='success'){
+  const n=document.getElementById('notif');
+  n.textContent=msg;n.className='notif '+type;n.style.display='block';
+  clearTimeout(n._t);n._t=setTimeout(()=>n.style.display='none',3200);
+}
+
+function updateMeta(){
+  document.getElementById('sessionCount').textContent=sessions.length+' sesi';
+  document.getElementById('totalDurChip').textContent=sessions.reduce((a,s)=>a+s.duration,0)+'s total';
+  document.getElementById('emptyState').style.display=sessions.length?'none':'flex';
+}
+
+function resolveAnim(anim){
+  return anim==='random'?ANIM_IDS[Math.floor(Math.random()*ANIM_IDS.length)]:anim;
+}
+
+function newSession(data){
+  return data||{
+    id:Date.now()+Math.random(),title:'Sesi baru',
+    audioUrl:null,audioName:'',imageUrl:null,imageName:'',imageObj:null,
+    anim:'kenburns-in',duration:10,open:true,
+    overlayEnabled:false,overlayText:'',overlayPos:'bottom',
+    overlaySize:52,overlayColor:'#ffffff',overlayBg:true
+  };
+}
+
+function addSession(data){
+  sessions.push(newSession(data));
+  renderSessions();updateMeta();
+}
+
+function duplicateSession(id){
+  const s=sessions.find(x=>x.id===id);if(!s)return;
+  const ns={...JSON.parse(JSON.stringify(s)),id:Date.now()+Math.random(),title:s.title+' (copy)',imageObj:s.imageObj};
+  ns.audioUrl=s.audioUrl;ns.imageUrl=s.imageUrl;
+  const i=sessions.findIndex(x=>x.id===id);
+  sessions.splice(i+1,0,ns);
+  renderSessions();updateMeta();showNotif('Sesi diduplikat','info');
+}
+
+function removeSession(id){sessions=sessions.filter(s=>s.id!==id);renderSessions();updateMeta();}
+
+function moveSession(id,dir){
+  const i=sessions.findIndex(s=>s.id===id),j=i+dir;
+  if(j<0||j>=sessions.length)return;
+  [sessions[i],sessions[j]]=[sessions[j],sessions[i]];
+  renderSessions();
+}
+
+function toggleSession(id){
+  const s=sessions.find(s=>s.id===id);if(s){s.open=!s.open;renderSessions();}
+}
+
+function setAnim(id,anim){
+  const s=sessions.find(x=>x.id===id);if(s){s.anim=anim;renderSessions();}
+}
+
+function setAudio(e,id){
+  const f=e.target.files[0];if(!f)return;
+  const s=sessions.find(x=>x.id===id);
+  s.audioUrl=URL.createObjectURL(f);s.audioName=f.name;
+  renderSessions();showNotif('Audio berhasil ditambahkan');
+}
+
+function setImage(e,id){
+  const f=e.target.files[0];if(!f)return;
+  const s=sessions.find(x=>x.id===id);
+  const url=URL.createObjectURL(f);
+  const img=new Image();
+  img.onload=()=>{s.imageObj=img;renderSessions();};
+  img.src=url;s.imageUrl=url;s.imageName=f.name;
+  renderSessions();showNotif('Gambar berhasil ditambahkan');
+}
+
+function setBgAudio(e){
+  const f=e.target.files[0];if(!f)return;
+  bgAudioUrl=URL.createObjectURL(f);
+  document.getElementById('bgAudioLbl').textContent='✅ '+f.name;
+  document.getElementById('bgAudioZone').classList.add('has-file');
+  showNotif('Audio background berhasil ditambahkan');
+}
+
+function updateResolution(){
+  const v=document.getElementById('resolution').value.split('x');
+  canvas.width=+v[0];canvas.height=+v[1];
+}
+
+function getTransform(anim,p,w,h){
+  switch(anim){
+    case'kenburns-in':return{sc:1+0.18*p,tx:0,ty:0};
+    case'kenburns-out':return{sc:1.18-0.18*p,tx:0,ty:0};
+    case'pan-left':return{sc:1.12,tx:-w*0.09*p,ty:0};
+    case'pan-right':return{sc:1.12,tx:w*0.09*p,ty:0};
+    case'pan-up':return{sc:1.12,tx:0,ty:-h*0.09*p};
+    case'pan-down':return{sc:1.12,tx:0,ty:h*0.09*p};
+    default:return{sc:1,tx:0,ty:0};
+  }
+}
+
+function drawFrame(s,progress,anim,fadeAlpha=1){
+  const w=canvas.width,h=canvas.height;
+  ctx.save();ctx.globalAlpha=fadeAlpha;
+  ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);
+  if(s.imageObj){
+    const img=s.imageObj;
+    const a=anim||s.anim;
+    const ratio=Math.max(w/img.width,h/img.height);
+    if(a==='fade'){
+      ctx.globalAlpha=fadeAlpha*(0.15+0.85*progress);
+      ctx.drawImage(img,(w-img.width*ratio)/2,(h-img.height*ratio)/2,img.width*ratio,img.height*ratio);
+      ctx.globalAlpha=fadeAlpha;
+    }else if(a==='static'){
+      ctx.drawImage(img,(w-img.width*ratio)/2,(h-img.height*ratio)/2,img.width*ratio,img.height*ratio);
+    }else{
+      const {sc,tx,ty}=getTransform(a,progress,w,h);
+      const r=ratio*sc;
+      ctx.drawImage(img,(w-img.width*r)/2+tx,(h-img.height*r)/2+ty,img.width*r,img.height*r);
+    }
+  }else{
+    ctx.fillStyle='#0d1117';ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='rgba(200,169,81,0.06)';
+    for(let i=0;i<w;i+=100){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke();}
+    for(let i=0;i<h;i+=100){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(w,i);ctx.stroke();}
+    ctx.fillStyle='rgba(200,169,81,0.65)';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font=`bold ${w*0.022}px system-ui`;ctx.fillText(s.title||'Sesi Video',w/2,h/2);
+    ctx.fillStyle='rgba(200,169,81,0.3)';ctx.font=`${w*0.013}px system-ui`;
+    ctx.fillText('Upload gambar untuk preview visual',w/2,h/2+w*0.03);
+  }
+  if(s.overlayEnabled&&s.overlayText){
+    const fs=+(s.overlaySize||52);
+    ctx.font=`bold ${fs}px system-ui`;ctx.textAlign='center';
+    const tw=ctx.measureText(s.overlayText).width;
+    const pad=fs*0.35;
+    const tx2=w/2;
+    const isTop=s.overlayPos==='top';
+    const ty2=isTop?fs*0.9+pad:h-fs*0.15-pad;
+    if(s.overlayBg){
+      ctx.fillStyle='rgba(0,0,0,0.58)';
+      ctx.fillRect(tx2-tw/2-pad,ty2-(isTop?0:fs)-pad*0.6,tw+pad*2,fs+pad*1.2);
+    }
+    ctx.fillStyle=s.overlayColor||'#ffffff';
+    ctx.textBaseline=isTop?'top':'bottom';
+    ctx.fillText(s.overlayText,tx2,ty2);
+  }
+  ctx.restore();
+}
+
+function drawFade(alpha){
+  ctx.save();ctx.fillStyle=`rgba(0,0,0,${alpha})`;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();
+}
+
+let sessionAnims={};
+
+function previewAll(){
+  if(!sessions.length){showNotif('Tambahkan sesi dulu!','error');return;}
+  stopPreview();
+  sessions.forEach(s=>{sessionAnims[s.id]=resolveAnim(s.anim);});
+  document.getElementById('previewLabel').style.display='block';
+  ['stopBtn','stopBtn2'].forEach(id=>document.getElementById(id).style.display='flex');
+  ['previewBtn','previewBtn2'].forEach(id=>document.getElementById(id).style.display='none');
+  previewActive=true;previewSessionIdx=0;
+  playPreviewSession();
+}
+
+function playPreviewSession(){
+  if(!previewActive||previewSessionIdx>=sessions.length){stopPreview();return;}
+  const s=sessions[previewSessionIdx];
+  document.getElementById('previewLabel').textContent=`${previewSessionIdx+1}/${sessions.length} — ${s.title}`;
+  if(previewAudio){previewAudio.pause();previewAudio=null;}
+  if(s.audioUrl){previewAudio=new Audio(s.audioUrl);previewAudio.play().catch(()=>{});}
+  if(!previewBgAudio&&bgAudioUrl){
+    previewBgAudio=new Audio(bgAudioUrl);previewBgAudio.loop=true;
+    previewBgAudio.volume=document.getElementById('bgVolume').value/100;
+    previewBgAudio.play().catch(()=>{});
+  }
+  const dur=s.duration*1000;
+  const transDur=parseFloat(document.getElementById('transitionDur').value)*1000;
+  const transType=document.getElementById('globalTransition').value;
+  const anim=sessionAnims[s.id]||'kenburns-in';
+  previewStartTime=performance.now();
+  function animate(){
+    if(!previewActive)return;
+    const el=performance.now()-previewStartTime;
+    const p=Math.min(el/dur,1);
+    document.getElementById('previewFill').style.width=((previewSessionIdx+p)/sessions.length*100)+'%';
+    if(transType==='fade'){
+      let fa=1;
+      if(el<transDur)fa=el/transDur;
+      else if(el>dur-transDur)fa=(dur-el)/transDur;
+      fa=Math.max(0,Math.min(1,fa));
+      drawFrame(s,p,anim);if(fa<1)drawFade(1-fa);
+    }else{drawFrame(s,p,anim);}
+    if(p<1){previewRAF=requestAnimationFrame(animate);}
+    else{previewSessionIdx++;setTimeout(playPreviewSession,50);}
+  }
+  previewRAF=requestAnimationFrame(animate);
+}
+
+function stopPreview(){
+  previewActive=false;
+  if(previewRAF){cancelAnimationFrame(previewRAF);previewRAF=null;}
+  if(previewAudio){previewAudio.pause();previewAudio=null;}
+  if(previewBgAudio){previewBgAudio.pause();previewBgAudio=null;}
+  ['stopBtn','stopBtn2'].forEach(id=>document.getElementById(id).style.display='none');
+  ['previewBtn','previewBtn2'].forEach(id=>document.getElementById(id).style.display='flex');
+  document.getElementById('previewLabel').style.display='none';
+  document.getElementById('previewFill').style.width='0%';
+}
+
+function captureThumbnail(){
+  if(!sessions.length){showNotif('Tambahkan sesi dulu!','error');return;}
+  drawFrame(sessions[0],0.35,resolveAnim(sessions[0].anim));
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/jpeg',0.93);a.download='thumbnail.jpg';a.click();
+  showNotif('Thumbnail berhasil diexport!','info');
+}
+
+async function exportVideo(){
+  if(!sessions.length){showNotif('Tambahkan sesi dulu!','error');return;}
+  const res=document.getElementById('resolution').value.split('x');
+  canvas.width=+res[0];canvas.height=+res[1];
+  const fps=+document.getElementById('fps').value;
+  const btn=document.getElementById('exportBtn');
+  btn.disabled=true;btn.textContent='Merender...';
+  document.getElementById('exportProgress').style.display='flex';
+
+  const resolvedA={};sessions.forEach(s=>{resolvedA[s.id]=resolveAnim(s.anim);});
+  const stream=canvas.captureStream(fps);
+  const mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
+  const aCtx=new AudioContext();
+  const dest=aCtx.createMediaStreamDestination();
+  const totalDur=sessions.reduce((a,s)=>a+s.duration,0);
+  const transType=document.getElementById('globalTransition').value;
+  const transDur=parseFloat(document.getElementById('transitionDur').value);
+  const doFadeBg=document.getElementById('bgFade').checked;
+
+  if(bgAudioUrl){
+    try{
+      const buf=await fetch(bgAudioUrl).then(r=>r.arrayBuffer()).then(b=>aCtx.decodeAudioData(b));
+      const src=aCtx.createBufferSource();src.buffer=buf;src.loop=true;
+      const gain=aCtx.createGain();const vol=document.getElementById('bgVolume').value/100;
+      gain.gain.value=vol;
+      if(doFadeBg){
+        const fi=Math.min(1.5,totalDur*0.05);
+        gain.gain.setValueAtTime(0,0);
+        gain.gain.linearRampToValueAtTime(vol,fi);
+        gain.gain.setValueAtTime(vol,totalDur-fi);
+        gain.gain.linearRampToValueAtTime(0,totalDur);
+      }
+      src.connect(gain);gain.connect(dest);src.start(0);
+    }catch(e){}
+  }
+
+  let off=0;
+  for(const s of sessions){
+    if(s.audioUrl){
+      try{
+        const buf=await fetch(s.audioUrl).then(r=>r.arrayBuffer()).then(b=>aCtx.decodeAudioData(b));
+        const src=aCtx.createBufferSource();src.buffer=buf;src.connect(dest);src.start(off);
+      }catch(e){}
+    }
+    off+=s.duration;
+  }
+
+  dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
+  const mr=new MediaRecorder(stream,{mimeType:mime});
+  recordedChunks=[];
+  mr.ondataavailable=e=>{if(e.data.size>0)recordedChunks.push(e.data);};
+  mr.onstop=()=>{
+    const blob=new Blob(recordedChunks,{type:'video/webm'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='narasi-islam.webm';a.click();
+    URL.revokeObjectURL(url);aCtx.close();
+    btn.disabled=false;btn.textContent='↓ Export WebM';
+    document.getElementById('exportProgress').style.display='none';
+    document.getElementById('exportFill').style.width='0%';
+    showNotif('Video berhasil diexport! Cek folder Download.');
+  };
+  mediaRecorder=mr;mr.start(100);
+
+  const totalMs=totalDur*1000;
+  let elapsed=0,sIdx=0,sElapsed=0,last=performance.now();
+  function loop(){
+    const now=performance.now(),delta=now-last;last=now;
+    elapsed+=delta;sElapsed+=delta;
+    const pct=Math.min(elapsed/totalMs*98,98);
+    document.getElementById('exportFill').style.width=pct+'%';
+    document.getElementById('exportLbl').textContent='Merender... '+Math.round(pct)+'%';
+    if(sIdx<sessions.length){
+      const s=sessions[sIdx];const durMs=s.duration*1000;
+      const p=Math.min(sElapsed/durMs,1);const a=resolvedA[s.id];
+      if(transType==='fade'){
+        const td=transDur*1000;let fa=1;
+        if(sElapsed<td)fa=sElapsed/td;
+        else if(sElapsed>durMs-td)fa=(durMs-sElapsed)/td;
+        fa=Math.max(0,Math.min(1,fa));
+        drawFrame(s,p,a);if(fa<1)drawFade(1-fa);
+      }else{drawFrame(s,p,a);}
+      if(sElapsed>=durMs){sIdx++;sElapsed=0;}
+      if(elapsed<totalMs){setTimeout(loop,1000/fps);return;}
+    }
+    mr.stop();
+  }
+  setTimeout(loop,1000/fps);
+}
+
+function exportSettings(){
+  const data={
+    sessions:sessions.map(s=>({
+      id:s.id,title:s.title,anim:s.anim,duration:s.duration,
+      audioName:s.audioName||'',imageName:s.imageName||'',
+      overlayEnabled:s.overlayEnabled,overlayText:s.overlayText,
+      overlayPos:s.overlayPos,overlaySize:s.overlaySize,
+      overlayColor:s.overlayColor,overlayBg:s.overlayBg
+    })),
+    bgVolume:document.getElementById('bgVolume').value,
+    resolution:document.getElementById('resolution').value,
+    fps:document.getElementById('fps').value,
+    transition:document.getElementById('globalTransition').value,
+    transitionDur:document.getElementById('transitionDur').value,
+    bgFade:document.getElementById('bgFade').checked
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='video-settings.json';a.click();
+  URL.revokeObjectURL(url);showNotif('Pengaturan berhasil diexport!');
+}
+
+function importSettings(e){
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      sessions=[];
+      (data.sessions||[]).forEach(s=>addSession({
+        ...s,audioUrl:null,imageUrl:null,imageObj:null,open:false
+      }));
+      if(data.bgVolume){document.getElementById('bgVolume').value=data.bgVolume;document.getElementById('bgVolVal').textContent=data.bgVolume+'%';}
+      if(data.resolution)document.getElementById('resolution').value=data.resolution;
+      if(data.fps)document.getElementById('fps').value=data.fps;
+      if(data.transition)document.getElementById('globalTransition').value=data.transition;
+      if(data.transitionDur)document.getElementById('transitionDur').value=data.transitionDur;
+      if(data.bgFade!=null)document.getElementById('bgFade').checked=data.bgFade;
+      renderSessions();updateMeta();
+      showNotif('Import berhasil! Upload ulang audio & gambar.','info');
+    }catch(err){showNotif('File JSON tidak valid','error');}
+  };
+  reader.readAsText(f);
+}
+
+function switchTab(el,tabId){
+  const body=el.closest('.session-body');
+  body.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  body.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const tc=document.getElementById(tabId);if(tc)tc.classList.add('active');
+}
+
+function renderSessions(){
+  const panel=document.getElementById('sessionsPanel');
+  panel.querySelectorAll('.session-card').forEach(c=>c.remove());
+  sessions.forEach((s,idx)=>{
+    const card=document.createElement('div');
+    card.className='session-card'+(s.open?' active':'');
+    const sid=JSON.stringify(s.id);
+    const miniImg=s.imageUrl?`<div class="session-preview-mini"><img src="${s.imageUrl}"><div class="mini-lbl">${s.title||'Sesi '+(idx+1)}</div></div>`:'';
+    card.innerHTML=`
+      <div class="session-header" onclick="toggleSession(${sid})">
+        <div class="session-number">${idx+1}</div>
+        <input class="session-title-input" value="${(s.title||'').replace(/"/g,'&quot;')}" placeholder="Judul sesi..."
+          onclick="event.stopPropagation()"
+          oninput="sessions.find(x=>x.id==${sid}).title=this.value;updateMeta()">
+        <div class="session-actions">
+          <button class="icon-btn" onclick="event.stopPropagation();moveSession(${sid},-1)" title="Naik">&#8593;</button>
+          <button class="icon-btn" onclick="event.stopPropagation();moveSession(${sid},1)" title="Turun">&#8595;</button>
+          <button class="icon-btn dup" onclick="event.stopPropagation();duplicateSession(${sid})" title="Duplikat">&#10064;</button>
+          <button class="icon-btn del" onclick="event.stopPropagation();removeSession(${sid})" title="Hapus">&#10005;</button>
+        </div>
+      </div>
+      ${s.open?`
+      <div class="session-body">
+        ${miniImg}
+        <div class="tab-bar">
+          <div class="tab active" onclick="switchTab(this,'tmedia-${idx}')">Media</div>
+          <div class="tab" onclick="switchTab(this,'tanim-${idx}')">Animasi</div>
+          <div class="tab" onclick="switchTab(this,'toverlay-${idx}')">Teks</div>
+          <div class="tab" onclick="switchTab(this,'tdur-${idx}')">Durasi</div>
+        </div>
+        <div id="tmedia-${idx}" class="tab-content active">
+          <div>
+            <div class="field-label">&#127925; Audio TTS</div>
+            <div class="upload-zone ${s.audioUrl?'has-file':''}">
+              <input type="file" accept="audio/*" onchange="setAudio(event,${sid})">
+              <div class="uz-icon">${s.audioUrl?'&#9989;':'&#127925;'}</div>
+              <div class="uz-text">${s.audioUrl?'Audio terpasang':'Klik upload audio TTS'}</div>
+              ${s.audioName?`<div class="uz-name">${s.audioName}</div>`:''}
+            </div>
+          </div>
+          <div>
+            <div class="field-label">&#128247; Gambar Ilustrasi</div>
+            <div class="upload-zone ${s.imageUrl?'has-file':''}">
+              <input type="file" accept="image/*" onchange="setImage(event,${sid})">
+              <div class="uz-icon">${s.imageUrl?'&#9989;':'&#128247;'}</div>
+              <div class="uz-text">${s.imageUrl?'Gambar terpasang':'Klik upload gambar'}</div>
+              ${s.imageName?`<div class="uz-name">${s.imageName}</div>`:''}
+            </div>
+          </div>
+        </div>
+        <div id="tanim-${idx}" class="tab-content">
+          <div class="field-label">&#127916; Pilih Animasi (&#9733; Random = acak tiap render)</div>
+          <div class="anim-grid">
+            ${ANIMS.map(a=>`<div class="anim-opt ${s.anim===a.id?'selected':''}" onclick="setAnim(${sid},'${a.id}')">
+              <span class="anim-icon">${a.icon}</span>${a.label}</div>`).join('')}
+          </div>
+        </div>
+        <div id="toverlay-${idx}" class="tab-content">
+          <div class="checkbox-row">
+            <input type="checkbox" id="ov${idx}" ${s.overlayEnabled?'checked':''}
+              onchange="sessions.find(x=>x.id==${sid}).overlayEnabled=this.checked;renderSessions()">
+            <label for="ov${idx}">Tampilkan teks overlay</label>
+          </div>
+          ${s.overlayEnabled?`
+          <input class="mini-input" type="text" placeholder="Teks overlay..." value="${(s.overlayText||'').replace(/"/g,'&quot;')}"
+            oninput="sessions.find(x=>x.id==${sid}).overlayText=this.value">
+          <div class="row2">
+            <div>
+              <div class="field-label">Posisi</div>
+              <select class="mini-input" onchange="sessions.find(x=>x.id==${sid}).overlayPos=this.value">
+                <option value="top" ${s.overlayPos==='top'?'selected':''}>Atas</option>
+                <option value="bottom" ${s.overlayPos==='bottom'?'selected':''}>Bawah</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Ukuran font (px)</div>
+              <input class="mini-input" type="number" value="${s.overlaySize||52}" min="20" max="120"
+                oninput="sessions.find(x=>x.id==${sid}).overlaySize=+this.value">
+            </div>
+          </div>
+          <div class="color-row">
+            <label>Warna teks</label>
+            <input type="color" value="${s.overlayColor||'#ffffff'}"
+              oninput="sessions.find(x=>x.id==${sid}).overlayColor=this.value">
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="ovbg${idx}" ${s.overlayBg!==false?'checked':''}
+              onchange="sessions.find(x=>x.id==${sid}).overlayBg=this.checked">
+            <label for="ovbg${idx}">Background gelap di belakang teks</label>
+          </div>`:''}
+        </div>
+        <div id="tdur-${idx}" class="tab-content">
+          <div class="field-label">Durasi sesi ini</div>
+          <div class="dur-row">
+            <input type="range" min="3" max="120" value="${s.duration}" step="1"
+              oninput="sessions.find(x=>x.id==${sid}).duration=+this.value;this.nextElementSibling.textContent=this.value+'s';updateMeta()">
+            <span>${s.duration}s</span>
+          </div>
+        </div>
+      </div>`:''}
+    `;
+    panel.appendChild(card);
+  });
+  updateMeta();
+}
+
+renderSessions();
+</script>
+</body>
+</html>

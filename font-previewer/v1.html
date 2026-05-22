@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FontScale — Typography Previewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:14px;
+  background:#f0f0f0;
+  color:#111;
+}
+
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:280px;min-width:260px;
+  background:#ffffff;
+  border-right:1px solid #e5e5e5;
+  overflow-y:auto;flex-shrink:0;
+  display:flex;flex-direction:column;
+}
+.sidebar-header{
+  padding:14px 16px;border-bottom:1px solid #e5e5e5;
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;background:#fff;z-index:10;
+}
+.logo-icon{
+  width:30px;height:30px;border-radius:7px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:12px;font-weight:700;flex-shrink:0;
+}
+.sidebar-header h1{font-size:15px;font-weight:600;color:#111;letter-spacing:-0.01em}
+
+.section{padding:14px 16px;border-bottom:1px solid #f0f0f0}
+.section-title{
+  font-size:10px;font-weight:700;color:#aaa;
+  text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;
+}
+.field{margin-bottom:10px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:11px;color:#777;margin-bottom:4px;font-weight:500}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+input[type=number],input[type=text],select{
+  width:100%;padding:6px 8px;
+  border:1px solid #e0e0e0;border-radius:6px;
+  background:#fff;color:#111;
+  font-size:12px;font-family:inherit;
+  outline:none;transition:border-color 0.15s;
+}
+select{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23aaa'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  padding-right:24px;
+}
+input[type=number]:focus,input[type=text]:focus,select:focus{border-color:#6366f1}
+
+.color-row{display:flex;gap:6px;align-items:center}
+.color-row input[type=text]{flex:1;font-family:monospace;font-size:11px}
+.color-swatch{
+  width:32px;height:32px;border-radius:6px;
+  border:1px solid #e0e0e0;flex-shrink:0;
+  cursor:pointer;overflow:hidden;padding:0;position:relative;
+}
+.color-swatch input[type=color]{
+  position:absolute;top:-4px;left:-4px;
+  width:calc(100%+8px);height:calc(100%+8px);
+  border:none;background:none;cursor:pointer;padding:0;opacity:0;
+  width:200%;height:200%;
+}
+
+/* ── TABS ── */
+.tab-bar{
+  display:flex;background:#fff;
+  border-bottom:1px solid #e5e5e5;
+  padding:0 20px;flex-shrink:0;
+}
+.tab{
+  padding:11px 16px;font-size:13px;font-weight:500;color:#999;
+  cursor:pointer;border-bottom:2px solid transparent;
+  transition:all 0.15s;white-space:nowrap;user-select:none;
+}
+.tab.active{color:#111;border-bottom-color:#6366f1}
+.tab:hover:not(.active){color:#555}
+
+/* ── MAIN ── */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.preview-area{flex:1;overflow-y:auto;background:#ebebeb;padding:24px}
+
+.preview-frame{
+  background:#fff;min-height:100%;
+  border-radius:10px;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,0.1),0 0 0 1px rgba(0,0,0,0.05);
+}
+
+/* ── SCALE TABLE ── */
+.scale-wrap{padding:24px 28px}
+.scale-header{
+  display:grid;grid-template-columns:60px 72px 72px 1fr;
+  padding:0 8px 8px;border-bottom:1px solid #eee;margin-bottom:2px;
+}
+.scale-header span{font-size:10px;font-weight:700;color:#ccc;text-transform:uppercase;letter-spacing:0.08em}
+.scale-row{
+  display:grid;grid-template-columns:60px 72px 72px 1fr;
+  padding:10px 8px;border-bottom:1px solid #f8f8f8;align-items:center;
+}
+.scale-row:hover{background:#fcfcfc}
+.scale-tag{font-size:11px;color:#bbb;font-family:monospace}
+.scale-num{font-size:11px;color:#ccc}
+
+/* ── LANDING ── */
+.lp-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 40px;border-bottom:1px solid rgba(0,0,0,0.07);
+}
+.lp-nav-links{display:flex;gap:24px}
+.lp-nav-links a{font-size:13px;text-decoration:none;opacity:0.65}
+.lp-hero{padding:56px 40px 44px}
+.lp-badge{
+  display:inline-block;padding:4px 12px;border-radius:20px;
+  background:#ede9fe;color:#6366f1;font-size:11px;font-weight:600;
+  margin-bottom:20px;letter-spacing:0.02em;
+}
+.lp-cta{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+.btn-p{
+  padding:12px 24px;border-radius:8px;border:none;
+  background:#111;color:#fff;font-size:14px;font-weight:500;
+  cursor:pointer;
+}
+.btn-s{
+  padding:12px 24px;border-radius:8px;border:1px solid #ddd;
+  background:#fff;color:#111;font-size:14px;font-weight:500;cursor:pointer;
+}
+.lp-features{padding:36px 40px;border-top:1px solid rgba(0,0,0,0.06)}
+.lp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.lp-card{padding:20px;border:1px solid rgba(0,0,0,0.08);border-radius:10px}
+
+/* ── ARTICLE ── */
+.article-wrap{max-width:680px;margin:0 auto;padding:48px 40px}
+
+/* ── CSS ── */
+.css-wrap{padding:20px}
+.css-toolbar{display:flex;justify-content:flex-end;margin-bottom:10px}
+.copy-btn{
+  padding:7px 16px;border:1px solid #e0e0e0;border-radius:6px;
+  background:#fff;color:#666;font-size:12px;cursor:pointer;
+  font-family:inherit;transition:all 0.15s;
+}
+.copy-btn:hover{background:#f5f5f5;color:#111}
+.copy-btn.ok{border-color:#22c55e;color:#16a34a}
+pre.css-out{
+  background:#f9f9f9;border:1px solid #ebebeb;border-radius:8px;padding:16px;
+  font-size:12px;line-height:1.7;color:#333;
+  font-family:'Menlo','Consolas',monospace;
+  white-space:pre;overflow-x:auto;max-height:70vh;overflow-y:auto;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ SIDEBAR ══ -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-icon">Tf</div>
+      <h1>FontScale</h1>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Base Settings</div>
+      <div class="row2">
+        <div class="field">
+          <label>Font size (px)</label>
+          <input type="number" id="baseSize" value="16" min="8" max="32">
+        </div>
+        <div class="field">
+          <label>Scale ratio</label>
+          <select id="scaleRatio">
+            <option value="1.067">1.067 — Minor 2nd</option>
+            <option value="1.125">1.125 — Major 2nd</option>
+            <option value="1.200">1.200 — Minor 3rd</option>
+            <option value="1.250" selected>1.250 — Major 3rd</option>
+            <option value="1.333">1.333 — Perfect 4th</option>
+            <option value="1.414">1.414 — Aug 4th</option>
+            <option value="1.500">1.500 — Perfect 5th</option>
+            <option value="1.618">1.618 — Golden Ratio</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Background color</label>
+        <div class="color-row">
+          <input type="text" id="bgColorText" value="#ffffff">
+          <div class="color-swatch" id="bgSwatch" style="background:#ffffff" title="Pick color">
+            <input type="color" id="bgColor" value="#ffffff">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Body</div>
+      <div class="field">
+        <label>Font</label>
+        <select id="bodyFont">
+          <option value="Inter">Inter</option>
+          <option value="Lora">Lora</option>
+          <option value="Merriweather">Merriweather</option>
+          <option value="Nunito">Nunito</option>
+          <option value="Open Sans">Open Sans</option>
+          <option value="Playfair Display">Playfair Display</option>
+          <option value="Poppins">Poppins</option>
+          <option value="Raleway">Raleway</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Source Sans 3">Source Sans 3</option>
+          <option value="DM Sans">DM Sans</option>
+          <option value="Josefin Sans">Josefin Sans</option>
+          <option value="Libre Baskerville">Libre Baskerville</option>
+          <option value="PT Serif">PT Serif</option>
+          <option value="Crimson Pro">Crimson Pro</option>
+          <option value="IBM Plex Sans">IBM Plex Sans</option>
+          <option value="Work Sans">Work Sans</option>
+          <option value="Karla">Karla</option>
+        </select>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Weight</label>
+          <select id="bodyWeight">
+            <option value="300">300 Light</option>
+            <option value="400" selected>400 Regular</option>
+            <option value="500">500 Medium</option>
+            <option value="600">600 SemiBold</option>
+            <option value="700">700 Bold</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Line height</label>
+          <input type="number" id="bodyLh" value="1.6" min="1" max="3" step="0.05">
+        </div>
+      </div>
+      <div class="field">
+        <label>Letter spacing (em)</label>
+        <input type="number" id="bodyLs" value="0" min="-0.1" max="0.3" step="0.001">
+      </div>
+      <div class="field">
+        <label>Color</label>
+        <div class="color-row">
+          <input type="text" id="bodyColorText" value="#333333">
+          <div class="color-swatch" id="bodyColorSwatch" style="background:#333333" title="Pick color">
+            <input type="color" id="bodyColor" value="#333333">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Headings</div>
+      <div class="field">
+        <label>Font</label>
+        <select id="headingFont">
+          <option value="inherit">Same as body</option>
+          <option value="Playfair Display">Playfair Display</option>
+          <option value="Merriweather">Merriweather</option>
+          <option value="Lora">Lora</option>
+          <option value="Inter">Inter</option>
+          <option value="Poppins">Poppins</option>
+          <option value="Raleway">Raleway</option>
+          <option value="Oswald">Oswald</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="DM Serif Display">DM Serif Display</option>
+          <option value="Fraunces">Fraunces</option>
+          <option value="Cormorant">Cormorant</option>
+          <option value="Libre Baskerville">Libre Baskerville</option>
+          <option value="Crimson Pro">Crimson Pro</option>
+          <option value="Unbounded">Unbounded</option>
+          <option value="Space Grotesk">Space Grotesk</option>
+          <option value="Syne">Syne</option>
+        </select>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Weight</label>
+          <select id="headingWeight">
+            <option value="400">400 Regular</option>
+            <option value="500">500 Medium</option>
+            <option value="600">600 SemiBold</option>
+            <option value="700" selected>700 Bold</option>
+            <option value="800">800 ExtraBold</option>
+            <option value="900">900 Black</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Line height</label>
+          <input type="number" id="headingLh" value="1.15" min="0.9" max="2" step="0.05">
+        </div>
+      </div>
+      <div class="field">
+        <label>Letter spacing (em)</label>
+        <input type="number" id="headingLs" value="-0.022" min="-0.1" max="0.2" step="0.001">
+      </div>
+      <div class="field">
+        <label>Color</label>
+        <div class="color-row">
+          <input type="text" id="headingColorText" value="#111111">
+          <div class="color-swatch" id="headingColorSwatch" style="background:#111111" title="Pick color">
+            <input type="color" id="headingColor" value="#111111">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main">
+    <div class="tab-bar">
+      <div class="tab active" data-tab="scale">Type Scale</div>
+      <div class="tab" data-tab="landing">Landing Page</div>
+      <div class="tab" data-tab="article">Article</div>
+      <div class="tab" data-tab="css">CSS</div>
+    </div>
+    <div class="preview-area">
+      <div class="preview-frame" id="previewFrame"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Load all Google Fonts upfront
+(function(){
+  const fonts=[
+    'Inter','Lora','Merriweather','Nunito','Open+Sans','Playfair+Display',
+    'Poppins','Raleway','Roboto','Source+Sans+3','DM+Sans','Josefin+Sans',
+    'Libre+Baskerville','PT+Serif','Crimson+Pro','IBM+Plex+Sans','Work+Sans',
+    'Karla','Oswald','Montserrat','DM+Serif+Display','Fraunces','Cormorant',
+    'Unbounded','Space+Grotesk','Syne'
+  ];
+  const url='https://fonts.googleapis.com/css2?'
+    +fonts.map(f=>'family='+f+':wght@300;400;500;600;700;800;900').join('&')
+    +'&display=swap';
+  var l=document.createElement('link');
+  l.rel='stylesheet';l.href=url;
+  document.head.appendChild(l);
+})();
+
+var activeTab='scale';
+
+function gv(id){return document.getElementById(id).value}
+function gf(id){return parseFloat(document.getElementById(id).value)||0}
+
+function getState(){
+  var base=parseFloat(gv('baseSize'))||16;
+  var ratio=parseFloat(gv('scaleRatio'))||1.25;
+  function p(n){return +((base*Math.pow(ratio,n)).toFixed(2))}
+  return{
+    base:base, ratio:ratio,
+    bgColor:gv('bgColorText')||'#ffffff',
+    bodyFont:gv('bodyFont'),
+    bodyWeight:gv('bodyWeight'),
+    bodyLh:gf('bodyLh')||1.6,
+    bodyLs:gf('bodyLs'),
+    bodyColor:gv('bodyColorText')||'#333333',
+    headingFont:gv('headingFont'),
+    headingWeight:gv('headingWeight'),
+    headingLh:gf('headingLh')||1.15,
+    headingLs:gf('headingLs'),
+    headingColor:gv('headingColorText')||'#111111',
+    sizes:{
+      h1:p(5),h2:p(4),h3:p(3),h4:p(2),h5:p(1),
+      h6:base,p:base,
+      small:+((base/ratio).toFixed(2)),
+      xs:+((base/ratio/ratio).toFixed(2))
+    }
+  };
+}
+
+function HF(s){
+  if(s.headingFont==='inherit') return "'"+s.bodyFont+"',sans-serif";
+  return "'"+s.headingFont+"',serif";
+}
+function BF(s){return "'"+s.bodyFont+"',sans-serif"}
+function cap(px,max){return Math.min(px,max)+'px'}
+
+// ── SCALE ──
+function renderScale(s){
+  var rows=[
+    {tag:'h1',px:s.sizes.h1,h:1},{tag:'h2',px:s.sizes.h2,h:1},
+    {tag:'h3',px:s.sizes.h3,h:1},{tag:'h4',px:s.sizes.h4,h:1},
+    {tag:'h5',px:s.sizes.h5,h:1},{tag:'h6',px:s.sizes.h6,h:1},
+    {tag:'p',px:s.sizes.p,h:0},
+    {tag:'small',px:s.sizes.small,h:0},
+    {tag:'xsmall',px:s.sizes.xs,h:0}
+  ];
+  var scaleText=document.getElementById('scaleRatio');
+  var scaleLabel=scaleText.options[scaleText.selectedIndex].text;
+  var html='<div class="scale-wrap" style="background:'+s.bgColor+'">'
+    +'<div style="margin-bottom:16px"><span style="font-size:12px;color:#999">Scale: <strong style="color:#666">'+scaleLabel+'</strong> &nbsp;·&nbsp; Base: <strong style="color:#666">'+s.base+'px</strong></span></div>'
+    +'<div class="scale-header"><span>Tag</span><span>REM</span><span>PX</span><span>Preview</span></div>';
+  rows.forEach(function(r){
+    var rem=(r.px/16).toFixed(3);
+    var px=r.px.toFixed(2);
+    var font=r.h?HF(s):BF(s);
+    var wt=r.h?s.headingWeight:s.bodyWeight;
+    var lh=r.h?s.headingLh:s.bodyLh;
+    var ls=r.h?s.headingLs:s.bodyLs;
+    var col=r.h?s.headingColor:s.bodyColor;
+    var dpx=Math.min(r.px,48);
+    html+='<div class="scale-row">'
+      +'<span class="scale-tag">'+r.tag+'</span>'
+      +'<span class="scale-num">'+rem+'</span>'
+      +'<span class="scale-num">'+px+'</span>'
+      +'<span style="font-family:'+font+';font-size:'+dpx+'px;font-weight:'+wt+';line-height:'+lh+';letter-spacing:'+ls+'em;color:'+col+';display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">The quick brown fox jumps over the lazy dog</span>'
+      +'</div>';
+  });
+  html+='</div>';
+  return html;
+}
+
+// ── LANDING ──
+function renderLanding(s){
+  var H=HF(s),B=BF(s),z=s.sizes;
+  return '<div style="background:'+s.bgColor+'">'
+    +'<nav class="lp-nav">'
+      +'<div style="font-family:'+H+';font-size:17px;font-weight:'+s.headingWeight+';color:'+s.headingColor+'">Zephtor</div>'
+      +'<div class="lp-nav-links">'
+        +['Home','Features','Pricing','About','Contact'].map(function(n){
+          return '<a href="#" style="font-family:'+B+';color:'+s.bodyColor+'">'+n+'</a>';
+        }).join('')
+      +'</div>'
+    +'</nav>'
+    +'<div class="lp-hero">'
+      +'<div class="lp-badge">✦ Version 2.0 is live</div>'
+      +'<h1 style="font-family:'+H+';font-size:'+cap(z.h1,64)+';font-weight:'+s.headingWeight+';line-height:'+s.headingLh+';letter-spacing:'+s.headingLs+'em;color:'+s.headingColor+';margin-bottom:20px;max-width:640px">Your digital transformation begins here</h1>'
+      +'<p style="font-family:'+B+';font-size:'+z.h5+'px;line-height:'+s.bodyLh+';color:'+s.bodyColor+';max-width:520px">Unlock the full potential of your business. Start your journey today and experience the future of enterprise software — built for teams that move fast.</p>'
+      +'<div class="lp-cta"><button class="btn-p" style="font-family:'+B+'">Explore features</button><button class="btn-s" style="font-family:'+B+'">Get started free</button></div>'
+      +'<p style="margin-top:14px;font-size:'+z.small+'px;color:'+s.bodyColor+';opacity:0.45;font-family:'+B+'">No credit card required · 14-day free trial</p>'
+    +'</div>'
+    +'<div class="lp-features">'
+      +'<h2 style="font-family:'+H+';font-size:'+cap(z.h2,40)+';font-weight:'+s.headingWeight+';line-height:'+s.headingLh+';letter-spacing:'+s.headingLs+'em;color:'+s.headingColor+'">Everything you need to scale</h2>'
+      +'<p style="font-family:'+B+';font-size:'+z.p+'px;color:'+s.bodyColor+';line-height:'+s.bodyLh+';margin-top:8px;max-width:480px;opacity:0.7">A complete suite of tools designed to grow with your team.</p>'
+      +'<div class="lp-grid">'
+        +[['⚡','Blazing Performance','Sub-100ms response times globally via our edge network.'],
+          ['📊','Smart Analytics','Deep insights into velocity, bottlenecks, and wins.'],
+          ['🤝','Team Collaboration','Real-time co-editing built for distributed teams.']
+         ].map(function(f){
+          return '<div class="lp-card">'
+            +'<div style="font-size:22px;margin-bottom:12px">'+f[0]+'</div>'
+            +'<h3 style="font-family:'+H+';font-size:'+cap(z.h4,22)+';font-weight:'+s.headingWeight+';color:'+s.headingColor+';margin-bottom:8px;line-height:'+s.headingLh+'">'+f[1]+'</h3>'
+            +'<p style="font-family:'+B+';font-size:'+z.small+'px;color:'+s.bodyColor+';line-height:'+s.bodyLh+';opacity:0.72">'+f[2]+'</p>'
+            +'</div>';
+        }).join('')
+      +'</div>'
+    +'</div>'
+    +'<div style="padding:24px 40px;border-top:1px solid rgba(0,0,0,0.07);display:flex;justify-content:space-between">'
+      +'<span style="font-family:'+B+';font-size:'+z.small+'px;color:'+s.bodyColor+';opacity:0.4">© 2026 Zephtor Inc.</span>'
+      +'<span style="font-family:'+B+';font-size:'+z.small+'px;color:'+s.bodyColor+';opacity:0.4">Privacy · Terms</span>'
+    +'</div>'
+  +'</div>';
+}
+
+// ── ARTICLE ──
+function renderArticle(s){
+  var H=HF(s),B=BF(s),z=s.sizes;
+  return '<div style="background:'+s.bgColor+'"><div class="article-wrap">'
+    +'<p style="font-family:'+B+';font-size:'+z.xs+'px;color:'+s.bodyColor+';opacity:0.4;margin-bottom:14px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600">Technology · 8 min read</p>'
+    +'<h1 style="font-family:'+H+';font-size:'+cap(z.h1,58)+';font-weight:'+s.headingWeight+';line-height:'+s.headingLh+';letter-spacing:'+s.headingLs+'em;color:'+s.headingColor+';margin-bottom:18px">The Future of Typography in Digital Design</h1>'
+    +'<p style="font-family:'+B+';font-size:'+z.h5+'px;line-height:'+s.bodyLh+';color:'+s.bodyColor+';opacity:0.68;margin-bottom:28px;border-left:3px solid #6366f1;padding-left:16px">How type systems, scale ratios, and font pairing are shaping the next generation of user experiences across web and mobile.</p>'
+    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:36px;padding-bottom:28px;border-bottom:1px solid rgba(0,0,0,0.08)">'
+      +'<div style="width:40px;height:40px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#6366f1;flex-shrink:0">AW</div>'
+      +'<div>'
+        +'<p style="font-family:'+B+';font-size:'+z.small+'px;font-weight:600;color:'+s.headingColor+';margin-bottom:2px">Ahmad Wibowo</p>'
+        +'<p style="font-family:'+B+';font-size:'+z.xs+'px;color:'+s.bodyColor+';opacity:0.45">May 13, 2026 · kukode.com</p>'
+      +'</div>'
+    +'</div>'
+
+    +'<h2 style="font-family:'+H+';font-size:'+cap(z.h2,36)+';font-weight:'+s.headingWeight+';line-height:'+s.headingLh+';letter-spacing:'+s.headingLs+'em;color:'+s.headingColor+';margin-bottom:14px">Why Type Scale Matters</h2>'
+    +'<p style="font-family:'+B+';font-size:'+z.p+'px;line-height:'+s.bodyLh+';color:'+s.bodyColor+';margin-bottom:16px">Typography is the backbone of visual communication. A well-defined type scale creates hierarchy, rhythm, and clarity — guiding readers through content effortlessly. When designers choose a mathematical ratio, every heading and paragraph exists in harmonic proportion.</p>'
+    +'<p style="font-family:'+B+';font-size:'+z.p+'px;line-height:'+s.bodyLh+';color:'+s.bodyColor+';margin-bottom:28px">The minor third (1.2), major third (1.25), and golden ratio (1.618) each produce dramatically different visual results. Choosing the right ratio depends on your content density, screen size, and brand personality.</p>'
+
+    +'<h3 style="font-family:'+H+';font-size:'+cap(z.h3,28)+';font-weight:'+s.headingWeight+';line-height:'+s.headingLh+';letter-spacing:'+s.headingLs+'em;color:'+s.headingColor+';margin-bottom:12px">Font Pairing Principles</h3>'
+    +'<p style="font-family:'+B+';font-size:'+z.p+'px;line-height:'+s.bodyLh+';color:'+s.bodyColor+';margin-bottom:24px">Great font pairs share complementary contrast — serif headings with sans-serif body text create classic editorial appeal. Conversely, a geometric sans heading with a humanist body creates modern warmth.</p>'
+
+    +'<blockquote style="margin:28px 0;padding:18px 22px;border-left:4px solid #6366f1;background:rgba(99,102,241,0.05);border-radius:0 8px 8px 0">'
+      +'<p style="font-family:'+H+';font-size:'+z.h5+'px;font-style:italic;color:'+s.headingColor+';line-height:'+s.headingLh+';margin-bottom:10px">"Typography is what language looks like."</p>'
+      +'<p style="font-family:'+B+';font-size:'+z.small+'px;color:'+s.bodyColor+';opacity:0.55">— Ellen Lupton, Thinking with Type</p>'
+    +'</blockquote>'
+
+    +'<h3 style="font-family:'+H+';font-size:'+cap(z.h3,28)+';font-weight:'+s.headingWeight+';line-height:'+s.headingLh+';letter-spacing:'+s.headingLs+'em;color:'+s.headingColor+';margin-bottom:12px;margin-top:28px">Responsive Type Systems</h3>'
+    +'<p style="font-family:'+B+';font-size:'+z.p+'px;line-height:'+s.bodyLh+';color:'+s.bodyColor+';margin-bottom:14px">Modern type systems must adapt across breakpoints. A 64px hero headline that works beautifully on desktop becomes overwhelming on mobile. Fluid typography using CSS <code style="font-size:0.9em;background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:3px">clamp()</code> allows smooth interpolation between sizes.</p>'
+    +'<ul style="font-family:'+B+';font-size:'+z.p+'px;line-height:'+s.bodyLh+';color:'+s.bodyColor+';padding-left:22px;margin-bottom:28px">'
+      +'<li style="margin-bottom:8px">Base size should increase slightly on larger screens</li>'
+      +'<li style="margin-bottom:8px">Scale ratio can be tighter on mobile (1.2) and looser on desktop (1.333+)</li>'
+      +'<li>Line length (measure) should stay between 45–75 characters for comfort</li>'
+    +'</ul>'
+
+    +'<div style="padding-top:24px;margin-top:32px;border-top:1px solid rgba(0,0,0,0.08)">'
+      +'<p style="font-family:'+B+';font-size:'+z.xs+'px;color:'+s.bodyColor+';opacity:0.35;margin-bottom:8px;letter-spacing:0.06em;text-transform:uppercase">Tagged</p>'
+      +['Typography','Design Systems','CSS','Web Design'].map(function(t){
+        return '<span style="display:inline-block;margin-right:6px;margin-bottom:6px;padding:3px 10px;border-radius:20px;background:rgba(0,0,0,0.05);font-family:'+B+';font-size:'+z.xs+'px;color:'+s.bodyColor+';opacity:0.65">'+t+'</span>';
+      }).join('')
+    +'</div>'
+  +'</div></div>';
+}
+
+// ── CSS OUTPUT ──
+function esc(str){return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function renderCss(s){
+  var scaleEl=document.getElementById('scaleRatio');
+  var scaleLabel=scaleEl.options[scaleEl.selectedIndex].text;
+  var z=s.sizes;
+  var hFont=s.headingFont==='inherit'?'var(--font-body)':"'"+s.headingFont+"', serif";
+  var css='/* ─────────────────────────────────────\n'
+    +'   FontScale — Generated CSS\n'
+    +'   Scale: '+scaleLabel+'\n'
+    +'   Base:  '+s.base+'px\n'
+    +'───────────────────────────────────── */\n\n'
+    +'@import url(\'https://fonts.googleapis.com/css2?family='+encodeURIComponent(s.bodyFont)+':wght@300;400;500;600;700;800;900'
+    +(s.headingFont!=='inherit'?'&family='+encodeURIComponent(s.headingFont)+':wght@300;400;500;600;700;800;900':'')
+    +'&display=swap\');\n\n'
+    +':root {\n'
+    +'  /* Fonts */\n'
+    +"  --font-body:    '"+s.bodyFont+"', sans-serif;\n"
+    +'  --font-heading: '+hFont+';\n\n'
+    +'  /* Colors */\n'
+    +'  --color-text:    '+s.bodyColor+';\n'
+    +'  --color-heading: '+s.headingColor+';\n'
+    +'  --color-bg:      '+s.bgColor+';\n\n'
+    +'  /* Type Scale — ratio: '+s.ratio+' */\n'
+    +'  --text-h1:    '+z.h1+'px;   /* '+(z.h1/16).toFixed(3)+'rem */\n'
+    +'  --text-h2:    '+z.h2+'px;   /* '+(z.h2/16).toFixed(3)+'rem */\n'
+    +'  --text-h3:    '+z.h3+'px;   /* '+(z.h3/16).toFixed(3)+'rem */\n'
+    +'  --text-h4:    '+z.h4+'px;   /* '+(z.h4/16).toFixed(3)+'rem */\n'
+    +'  --text-h5:    '+z.h5+'px;   /* '+(z.h5/16).toFixed(3)+'rem */\n'
+    +'  --text-h6:    '+z.h6+'px;   /* '+(z.h6/16).toFixed(3)+'rem */\n'
+    +'  --text-body:  '+z.p+'px;\n'
+    +'  --text-small: '+z.small+'px;\n'
+    +'  --text-xs:    '+z.xs+'px;\n'
+    +'}\n\n'
+    +'body {\n'
+    +'  font-family:    var(--font-body);\n'
+    +'  font-size:      '+z.p+'px;\n'
+    +'  font-weight:    '+s.bodyWeight+';\n'
+    +'  line-height:    '+s.bodyLh+';\n'
+    +'  letter-spacing: '+s.bodyLs+'em;\n'
+    +'  color:          var(--color-text);\n'
+    +'  background:     var(--color-bg);\n'
+    +'}\n\n'
+    +'h1, h2, h3, h4, h5, h6 {\n'
+    +'  font-family:    var(--font-heading);\n'
+    +'  font-weight:    '+s.headingWeight+';\n'
+    +'  line-height:    '+s.headingLh+';\n'
+    +'  letter-spacing: '+s.headingLs+'em;\n'
+    +'  color:          var(--color-heading);\n'
+    +'}\n\n'
+    +'h1 { font-size: var(--text-h1); }\n'
+    +'h2 { font-size: var(--text-h2); }\n'
+    +'h3 { font-size: var(--text-h3); }\n'
+    +'h4 { font-size: var(--text-h4); }\n'
+    +'h5 { font-size: var(--text-h5); }\n'
+    +'h6 { font-size: var(--text-h6); }\n\n'
+    +'small { font-size: var(--text-small); }';
+
+  return '<div class="css-wrap">'
+    +'<div class="css-toolbar"><button class="copy-btn" id="copyBtn" onclick="copyCSS()">Copy CSS</button></div>'
+    +'<pre class="css-out" id="cssOut">'+esc(css)+'</pre>'
+    +'</div>';
+}
+
+window.copyCSS=function(){
+  var text=document.getElementById('cssOut').textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    var btn=document.getElementById('copyBtn');
+    btn.textContent='✓ Copied!';btn.classList.add('ok');
+    setTimeout(function(){btn.textContent='Copy CSS';btn.classList.remove('ok')},2000);
+  });
+};
+
+function render(){
+  var s=getState();
+  var f=document.getElementById('previewFrame');
+  if(activeTab==='scale') f.innerHTML=renderScale(s);
+  else if(activeTab==='landing') f.innerHTML=renderLanding(s);
+  else if(activeTab==='article') f.innerHTML=renderArticle(s);
+  else if(activeTab==='css') f.innerHTML=renderCss(s);
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    activeTab=t.dataset.tab;
+    render();
+  });
+});
+
+// Color sync
+function syncColor(textId,colorId,swatchId){
+  var txt=document.getElementById(textId);
+  var col=document.getElementById(colorId);
+  var sw=document.getElementById(swatchId);
+  txt.addEventListener('input',function(){col.value=txt.value;sw.style.background=txt.value;render()});
+  col.addEventListener('input',function(){txt.value=col.value;sw.style.background=col.value;render()});
+  sw.addEventListener('click',function(){col.click()});
+}
+syncColor('bgColorText','bgColor','bgSwatch');
+syncColor('bodyColorText','bodyColor','bodyColorSwatch');
+syncColor('headingColorText','headingColor','headingColorSwatch');
+
+// Other inputs
+['baseSize','scaleRatio','bodyFont','bodyWeight','bodyLh','bodyLs',
+ 'headingFont','headingWeight','headingLh','headingLs'].forEach(function(id){
+  var el=document.getElementById(id);
+  el.addEventListener('input',render);
+  el.addEventListener('change',render);
+});
+
+render();
+</script>
+</body>
+</html>

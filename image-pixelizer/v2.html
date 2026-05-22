@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixelizer — Image to Pixel Art</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --white: #ffffff;
+  --paper: #f7f6f3;
+  --paper2: #f0efe9;
+  --ink: #1a1916;
+  --ink2: #3d3c38;
+  --ink3: #7a7870;
+  --rule: #e2e0d8;
+  --rule2: #ccc9be;
+  --accent: #c84b2f;      /* warm terracotta */
+  --accent-lt: #f5e9e5;
+  --accent2: #2f6dc8;     /* blue for secondary actions */
+  --accent2-lt: #e5ecf5;
+  --green: #2a7a4f;
+  --green-lt: #e5f2ec;
+  --radius: 6px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(26,25,22,0.08);
+  --shadow-md: 0 4px 16px rgba(26,25,22,0.10);
+  --shadow-lg: 0 12px 48px rgba(26,25,22,0.12);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+  --transition: 0.18s ease;
+}
+
+html { font-size: 15px; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── NAV ── */
+nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--rule);
+  padding: 0 2.5rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+  font-style: italic;
+}
+
+.nav-logo span {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.nav-tag {
+  font-size: 0.65rem;
+  color: var(--ink3);
+  letter-spacing: 0.05em;
+  border: 1px solid var(--rule2);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-style: normal;
+}
+
+.nav-hint {
+  font-size: 0.72rem;
+  color: var(--ink3);
+}
+
+/* ── LAYOUT ── */
+.app {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 2.5rem;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* ── PANEL (sidebar) ── */
+.panel {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 72px;
+}
+
+.panel-section {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+  animation: slideIn 0.4s ease both;
+}
+
+.panel-section:last-child { border-bottom: none; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.panel-section:nth-child(1) { animation-delay: 0.05s; }
+.panel-section:nth-child(2) { animation-delay: 0.10s; }
+.panel-section:nth-child(3) { animation-delay: 0.15s; }
+.panel-section:nth-child(4) { animation-delay: 0.20s; }
+.panel-section:nth-child(5) { animation-delay: 0.25s; }
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 0.62rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink2);
+  font-weight: 500;
+}
+
+/* ── DROPZONE ── */
+.dropzone {
+  border: 1.5px dashed var(--rule2);
+  border-radius: var(--radius);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.dropzone:hover {
+  border-color: var(--ink2);
+  background: var(--paper2);
+}
+
+.dropzone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-lt);
+  border-style: solid;
+}
+
+.dropzone.has-image {
+  padding: 0;
+  border-style: solid;
+  border-color: var(--rule2);
+}
+
+.dropzone.has-image:hover {
+  border-color: var(--accent);
+}
+
+.dropzone.has-image img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  border-radius: calc(var(--radius) - 1px);
+}
+
+.dz-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26,25,22,0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  opacity: 0;
+  transition: opacity var(--transition);
+  border-radius: calc(var(--radius) - 1px);
+}
+
+.dropzone.has-image:hover .dz-overlay { opacity: 1; }
+
+.dz-overlay-text {
+  color: var(--white);
+  font-size: 0.75rem;
+}
+
+.dz-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.dz-label {
+  font-size: 0.78rem;
+  color: var(--ink2);
+  line-height: 1.6;
+}
+
+.dz-label strong {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.dz-hint {
+  font-size: 0.65rem;
+  color: var(--ink3);
+  margin-top: 0.25rem;
+  display: block;
+}
+
+input[type="file"] { display: none; }
+
+/* ── PRESETS ── */
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.preset {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  color: var(--ink3);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.45rem 0.2rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+  line-height: 1;
+}
+
+.preset:hover {
+  border-color: var(--ink2);
+  color: var(--ink);
+  background: var(--white);
+}
+
+.preset.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--white);
+}
+
+/* ── CONTROL ROWS ── */
+.ctrl-block { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.ctrl-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ctrl-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.ctrl-label {
+  font-size: 0.7rem;
+  color: var(--ink3);
+  letter-spacing: 0.04em;
+}
+
+.ctrl-val {
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+  text-align: right;
+}
+
+/* Input number inline */
+.ctrl-val-input {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--rule2);
+  width: 48px;
+  text-align: right;
+  outline: none;
+  padding: 0 0 1px 0;
+}
+
+.ctrl-val-input:focus { border-color: var(--accent); }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  background: var(--rule);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform var(--transition), background var(--transition);
+  border: 2px solid var(--white);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.ctrl-divider {
+  height: 1px;
+  background: var(--rule);
+  margin: 0.2rem 0;
+}
+
+/* Toggle */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-row input { display: none; }
+
+.toggle-track {
+  width: 30px;
+  height: 16px;
+  background: var(--rule2);
+  border-radius: 8px;
+  position: relative;
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 12px;
+  height: 12px;
+  background: var(--white);
+  border-radius: 50%;
+  transition: left var(--transition);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-row input:checked + .toggle-track { background: var(--ink); }
+.toggle-row input:checked + .toggle-track::after { left: 16px; }
+
+.toggle-label {
+  font-size: 0.7rem;
+  color: var(--ink3);
+}
+
+/* ── PIXEL SIZE (kotak) ── */
+.pxsize-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pxsize-input {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  width: 70px;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius);
+  text-align: center;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.pxsize-input:focus { border-color: var(--ink2); }
+.pxsize-sep { color: var(--ink3); font-size: 0.7rem; }
+
+/* ── GENERATE BUTTON ── */
+.btn-generate {
+  width: 100%;
+  background: var(--ink);
+  color: var(--white);
+  border: none;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-generate:hover:not(:disabled) {
+  background: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-generate:active:not(:disabled) { transform: translateY(0); }
+
+.btn-generate:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── DOWNLOAD BUTTONS ── */
+.dl-group {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.btn-dl {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  color: var(--ink2);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.5rem 0.25rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.btn-dl .dl-icon { font-size: 1rem; }
+.btn-dl .dl-fmt { letter-spacing: 0.04em; }
+
+.btn-dl.jpg:hover:not(:disabled) { background: var(--accent-lt); border-color: var(--accent); color: var(--accent); }
+.btn-dl.png:hover:not(:disabled) { background: var(--accent2-lt); border-color: var(--accent2); color: var(--accent2); }
+.btn-dl.svg:hover:not(:disabled) { background: var(--green-lt); border-color: var(--green); color: var(--green); }
+.btn-dl.copy:hover:not(:disabled) { background: var(--paper2); border-color: var(--ink2); color: var(--ink); }
+
+.btn-dl:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── CANVAS AREA ── */
+.canvas-area {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.5s ease 0.3s both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.empty-grid {
+  width: 120px;
+  height: 120px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.85; }
+}
+
+.empty-cell {
+  border-radius: 2px;
+  background: var(--rule2);
+}
+
+.empty-cell:nth-child(3n)   { background: var(--accent); opacity: 0.5; }
+.empty-cell:nth-child(5n)   { background: var(--accent2); opacity: 0.4; }
+.empty-cell:nth-child(7n+1) { background: var(--green); opacity: 0.35; }
+
+.empty-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.empty-body {
+  font-size: 0.75rem;
+  color: var(--ink3);
+  line-height: 1.8;
+  max-width: 280px;
+}
+
+/* Result */
+.result {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.canvas-wrap {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-lg);
+  background: #fff;
+  transition: box-shadow var(--transition);
+  max-width: 100%;
+}
+
+.canvas-wrap:hover { box-shadow: var(--shadow-lg), 0 0 0 2px var(--rule2); }
+
+#outputCanvas {
+  display: block;
+  max-width: min(740px, 100%);
+  max-height: 62vh;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  gap: 0;
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: min(740px, 100%);
+}
+
+.stat {
+  flex: 1;
+  padding: 0.65rem 0.75rem;
+  border-right: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat:last-child { border-right: none; }
+
+.stat-val {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-key {
+  font-size: 0.62rem;
+  color: var(--ink3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Toast */
+.toast-wrap {
+  position: fixed;
+  bottom: 1.75rem;
+  right: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--ink);
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transform: translateX(12px);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.toast.show { opacity: 1; transform: translateX(0); }
+.toast.success { background: var(--green); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 800px) {
+  .app { grid-template-columns: 1fr; padding: 1rem; gap: 1.5rem; }
+  .panel { position: static; }
+  nav { padding: 0 1.25rem; }
+  .nav-hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <span class="nav-logo">Pixel<span>izer</span></span>
+    <span class="nav-tag">v2.0</span>
+  </div>
+  <span class="nav-hint">Ctrl+V untuk paste gambar dari clipboard</span>
+</nav>
+
+<div class="app">
+
+  <!-- PANEL -->
+  <aside class="panel">
+
+    <!-- 1. Upload -->
+    <div class="panel-section">
+      <div class="section-head">
+        <div class="step-num">1</div>
+        <span class="section-title">Upload Gambar</span>
+      </div>
+      <div class="dropzone" id="dropZone">
+        <span class="dz-icon">⬡</span>
+        <div class="dz-label"><strong>Klik</strong> atau seret gambar ke sini</div>
+        <span class="dz-hint">JPG · PNG · WebP · GIF — max 20MB</span>
+        <img id="thumbImg" style="display:none" alt="">
+        <div class="dz-overlay">
+          <span class="dz-overlay-text">↑ Ganti Gambar</span>
+        </div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <!-- 2. Grid Preset -->
+    <div class="panel-section">
+      <div class="section-head">
+        <div class="step-num">2</div>
+        <span class="section-title">Preset Grid</span>
+      </div>
+      <div class="preset-grid">
+        <button class="preset" data-cols="8"   data-rows="8">8×8</button>
+        <button class="preset" data-cols="16"  data-rows="16">16×16</button>
+        <button class="preset" data-cols="32"  data-rows="32">32×32</button>
+        <button class="preset" data-cols="64"  data-rows="64">64×64</button>
+        <button class="preset" data-cols="128" data-rows="128">128×128</button>
+        <button class="preset" data-cols="24"  data-rows="16">24×16</button>
+        <button class="preset" data-cols="48"  data-rows="32">48×32</button>
+        <button class="preset" data-cols="0"   data-rows="0">Custom</button>
+      </div>
+    </div>
+
+    <!-- 3. Grid & Pixel Size -->
+    <div class="panel-section">
+      <div class="section-head">
+        <div class="step-num">3</div>
+        <span class="section-title">Ukuran Grid &amp; Kotak</span>
+      </div>
+      <div class="ctrl-block">
+
+        <div class="ctrl-row">
+          <div class="ctrl-meta">
+            <span class="ctrl-label">Kolom (lebar grid)</span>
+            <input type="number" class="ctrl-val-input" id="colsNum" min="4" max="256" value="32">
+          </div>
+          <input type="range" id="colsSlider" min="4" max="256" value="32" step="1">
+        </div>
+
+        <div class="ctrl-row">
+          <div class="ctrl-meta">
+            <span class="ctrl-label">Baris (tinggi grid)</span>
+            <input type="number" class="ctrl-val-input" id="rowsNum" min="4" max="256" value="32">
+          </div>
+          <input type="range" id="rowsSlider" min="4" max="256" value="32" step="1">
+        </div>
+
+        <label class="toggle-row">
+          <input type="checkbox" id="lockRatio" checked>
+          <div class="toggle-track"></div>
+          <span class="toggle-label">Kunci rasio aspek</span>
+        </label>
+
+        <div class="ctrl-divider"></div>
+
+        <div>
+          <div class="ctrl-label" style="margin-bottom:0.5rem;">Ukuran kotak piksel (px)</div>
+          <div class="pxsize-row">
+            <input type="number" class="pxsize-input" id="blockW" min="1" max="40" value="10" title="Lebar">
+            <span class="pxsize-sep">×</span>
+            <input type="number" class="pxsize-input" id="blockH" min="1" max="40" value="10" title="Tinggi">
+            <span class="pxsize-sep" style="font-size:0.65rem;color:var(--ink3)">px/blok</span>
+          </div>
+          <div style="font-size:0.63rem;color:var(--ink3);margin-top:0.4rem;line-height:1.5">
+            Mempengaruhi ukuran output & SVG
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 4. Generate -->
+    <div class="panel-section">
+      <div class="section-head">
+        <div class="step-num">4</div>
+        <span class="section-title">Generate</span>
+      </div>
+      <button class="btn-generate" id="genBtn" disabled>
+        <span>▶</span> Pixelate
+      </button>
+    </div>
+
+    <!-- 5. Download -->
+    <div class="panel-section">
+      <div class="section-head">
+        <div class="step-num">5</div>
+        <span class="section-title">Download / Salin</span>
+      </div>
+      <div class="dl-group">
+        <button class="btn-dl jpg" id="dlJpg" disabled>
+          <span class="dl-icon">↓</span>
+          <span class="dl-fmt">JPG</span>
+        </button>
+        <button class="btn-dl png" id="dlPng" disabled>
+          <span class="dl-icon">↓</span>
+          <span class="dl-fmt">PNG</span>
+        </button>
+        <button class="btn-dl svg" id="dlSvg" disabled>
+          <span class="dl-icon">↓</span>
+          <span class="dl-fmt">SVG</span>
+        </button>
+        <button class="btn-dl copy" id="copyBtn" disabled>
+          <span class="dl-icon">⎘</span>
+          <span class="dl-fmt">Copy</span>
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- CANVAS AREA -->
+  <section class="canvas-area" id="canvasArea">
+
+    <div class="empty" id="emptyState">
+      <div class="empty-grid" id="emptyGrid">
+        <!-- filled by JS -->
+      </div>
+      <div>
+        <div class="empty-title">Mulai dengan<br>upload gambar</div>
+      </div>
+      <p class="empty-body">
+        Upload foto, logo, atau ilustrasi — ubah menjadi pixel art dengan kontrol penuh atas ukuran grid dan blok piksel.
+      </p>
+    </div>
+
+    <div class="result" id="resultEl" style="display:none">
+      <div class="canvas-wrap">
+        <canvas id="outputCanvas"></canvas>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-val" id="sCols">—</span>
+          <span class="stat-key">Kolom</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="sRows">—</span>
+          <span class="stat-key">Baris</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="sTotal">—</span>
+          <span class="stat-key">Total Piksel</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="sOut">—</span>
+          <span class="stat-key">Output</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="sBlock">—</span>
+          <span class="stat-key">Blok/px</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+<!-- Toasts -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Hidden processing canvas -->
+<canvas id="srcCanvas" style="display:none"></canvas>
+
+<script>
+// ── Elements ──
+const fileInput   = document.getElementById('fileInput');
+const dropZone    = document.getElementById('dropZone');
+const thumbImg    = document.getElementById('thumbImg');
+const colsSlider  = document.getElementById('colsSlider');
+const rowsSlider  = document.getElementById('rowsSlider');
+const colsNum     = document.getElementById('colsNum');
+const rowsNum     = document.getElementById('rowsNum');
+const lockRatio   = document.getElementById('lockRatio');
+const blockW      = document.getElementById('blockW');
+const blockH      = document.getElementById('blockH');
+const genBtn      = document.getElementById('genBtn');
+const dlJpg       = document.getElementById('dlJpg');
+const dlPng       = document.getElementById('dlPng');
+const dlSvg       = document.getElementById('dlSvg');
+const copyBtn     = document.getElementById('copyBtn');
+const outputCanvas= document.getElementById('outputCanvas');
+const srcCanvas   = document.getElementById('srcCanvas');
+const emptyState  = document.getElementById('emptyState');
+const resultEl    = document.getElementById('resultEl');
+const toastWrap   = document.getElementById('toastWrap');
+
+let srcImg = null, aspect = 1, hasOutput = false, debounce = null, isUpdating = false;
+
+// ── Build empty grid ──
+const eg = document.getElementById('emptyGrid');
+for (let i = 0; i < 36; i++) {
+  const c = document.createElement('div');
+  c.className = 'empty-cell';
+  eg.appendChild(c);
+}
+
+// ── Toast ──
+function toast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  toastWrap.appendChild(t);
+  requestAnimationFrame(() => { requestAnimationFrame(() => t.classList.add('show')); });
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 300);
+  }, 2400);
+}
+
+// ── File load ──
+function loadImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    srcImg = img;
+    aspect = img.width / img.height;
+    thumbImg.src = url;
+    thumbImg.style.display = 'block';
+    dropZone.classList.add('has-image');
+    genBtn.disabled = false;
+    // Auto-adjust rows if locked
+    if (lockRatio.checked) {
+      const cols = parseInt(colsSlider.value);
+      setRows(Math.round(cols / aspect));
+    }
+    autoPixelate();
+  };
+  img.src = url;
+}
+
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => loadImage(e.target.files[0]));
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); loadImage(e.dataTransfer.files[0]); });
+document.addEventListener('paste', e => {
+  const item = [...e.clipboardData.items].find(i => i.type.startsWith('image/'));
+  if (item) { loadImage(item.getAsFile()); toast('Gambar dari clipboard dimuat ✓', 'success'); }
+});
+
+// ── Preset ──
+document.querySelectorAll('.preset').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const c = parseInt(btn.dataset.cols), r = parseInt(btn.dataset.rows);
+    if (c === 0) return;
+    isUpdating = true;
+    setCols(c); setRows(r);
+    isUpdating = false;
+    if (srcImg) autoPixelate();
+  });
+});
+
+// ── Sync helpers ──
+function setCols(v) {
+  v = Math.max(4, Math.min(256, v));
+  colsSlider.value = v; colsNum.value = v;
+}
+function setRows(v) {
+  v = Math.max(4, Math.min(256, v));
+  rowsSlider.value = v; rowsNum.value = v;
+}
+
+function onColsChange(v) {
+  v = Math.max(4, Math.min(256, parseInt(v) || 4));
+  setCols(v);
+  if (!isUpdating && lockRatio.checked && srcImg) {
+    isUpdating = true; setRows(Math.round(v / aspect)); isUpdating = false;
+  }
+  clearPresets();
+  if (srcImg) debouncedPixelate();
+}
+
+function onRowsChange(v) {
+  v = Math.max(4, Math.min(256, parseInt(v) || 4));
+  setRows(v);
+  if (!isUpdating && lockRatio.checked && srcImg) {
+    isUpdating = true; setCols(Math.round(v * aspect)); isUpdating = false;
+  }
+  clearPresets();
+  if (srcImg) debouncedPixelate();
+}
+
+colsSlider.addEventListener('input', e => onColsChange(e.target.value));
+colsNum.addEventListener('input', e => onColsChange(e.target.value));
+rowsSlider.addEventListener('input', e => onRowsChange(e.target.value));
+rowsNum.addEventListener('input', e => onRowsChange(e.target.value));
+
+blockW.addEventListener('change', () => { if (srcImg) autoPixelate(); });
+blockH.addEventListener('change', () => { if (srcImg) autoPixelate(); });
+
+function clearPresets() {
+  document.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
+}
+
+function debouncedPixelate() {
+  clearTimeout(debounce);
+  debounce = setTimeout(autoPixelate, 90);
+}
+
+function autoPixelate() {
+  if (!srcImg) return;
+  pixelate();
+}
+
+// ── Core pixelation ──
+function pixelate() {
+  if (!srcImg) return;
+  const cols = parseInt(colsSlider.value);
+  const rows = parseInt(rowsSlider.value);
+  const bw   = Math.max(1, Math.min(40, parseInt(blockW.value) || 10));
+  const bh   = Math.max(1, Math.min(40, parseInt(blockH.value) || 10));
+  blockW.value = bw; blockH.value = bh;
+
+  // Downscale
+  const ctx = srcCanvas.getContext('2d', { willReadFrequently: true });
+  srcCanvas.width  = cols;
+  srcCanvas.height = rows;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(srcImg, 0, 0, cols, rows);
+  const imgData = ctx.getImageData(0, 0, cols, rows);
+
+  // Draw output
+  const outW = cols * bw, outH = rows * bh;
+  outputCanvas.width  = outW;
+  outputCanvas.height = outH;
+  const oc = outputCanvas.getContext('2d');
+  oc.clearRect(0, 0, outW, outH);
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = (y * cols + x) * 4;
+      const [r, g, b, a] = [imgData.data[i], imgData.data[i+1], imgData.data[i+2], imgData.data[i+3]];
+      oc.fillStyle = `rgba(${r},${g},${b},${a/255})`;
+      oc.fillRect(x * bw, y * bh, bw, bh);
+    }
+  }
+
+  // Show
+  emptyState.style.display = 'none';
+  resultEl.style.display   = 'flex';
+  document.getElementById('sCols').textContent  = cols;
+  document.getElementById('sRows').textContent  = rows;
+  document.getElementById('sTotal').textContent = (cols * rows).toLocaleString('id');
+  document.getElementById('sOut').textContent   = `${outW}×${outH}`;
+  document.getElementById('sBlock').textContent = `${bw}×${bh}`;
+
+  hasOutput = true;
+  [dlJpg, dlPng, dlSvg, copyBtn].forEach(b => b.disabled = false);
+}
+
+genBtn.addEventListener('click', pixelate);
+
+// ── Build SVG ──
+function buildSVG() {
+  const cols = parseInt(colsSlider.value);
+  const rows = parseInt(rowsSlider.value);
+  const bw   = Math.max(1, parseInt(blockW.value) || 10);
+  const bh   = Math.max(1, parseInt(blockH.value) || 10);
+
+  const ctx = srcCanvas.getContext('2d', { willReadFrequently: true });
+  srcCanvas.width  = cols;
+  srcCanvas.height = rows;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(srcImg, 0, 0, cols, rows);
+  const imgData = ctx.getImageData(0, 0, cols, rows);
+
+  let rects = '';
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i  = (y * cols + x) * 4;
+      const [r, g, b, a] = [imgData.data[i], imgData.data[i+1], imgData.data[i+2], imgData.data[i+3]];
+      const hex = '#' + [r,g,b].map(n => n.toString(16).padStart(2,'0')).join('');
+      const alpha = (a / 255).toFixed(3);
+      const fa = parseFloat(alpha) === 1 ? '' : ` fill-opacity="${alpha}"`;
+      rects += `<rect x="${x*bw}" y="${y*bh}" width="${bw}" height="${bh}" fill="${hex}"${fa}/>`;
+    }
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${cols*bw}" height="${rows*bh}" viewBox="0 0 ${cols*bw} ${rows*bh}">
+${rects}
+</svg>`;
+}
+
+// ── Downloads ──
+dlJpg.addEventListener('click', () => {
+  if (!hasOutput) return;
+  const link = document.createElement('a');
+  link.download = 'pixelart.jpg';
+  link.href = outputCanvas.toDataURL('image/jpeg', 0.95);
+  link.click();
+  toast('JPG berhasil diunduh ↓', 'success');
+});
+
+dlPng.addEventListener('click', () => {
+  if (!hasOutput) return;
+  const link = document.createElement('a');
+  link.download = 'pixelart.png';
+  link.href = outputCanvas.toDataURL('image/png');
+  link.click();
+  toast('PNG berhasil diunduh ↓', 'success');
+});
+
+dlSvg.addEventListener('click', () => {
+  if (!hasOutput) return;
+  const svg  = buildSVG();
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.download = 'pixelart.svg';
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+  toast('SVG vektor berhasil diunduh ↓', 'success');
+});
+
+copyBtn.addEventListener('click', async () => {
+  if (!hasOutput) return;
+  try {
+    outputCanvas.toBlob(async blob => {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        toast('Gambar disalin ke clipboard ✓', 'success');
+      } catch {
+        // Fallback: copy SVG text
+        const svg = buildSVG();
+        await navigator.clipboard.writeText(svg);
+        toast('SVG disalin ke clipboard ✓', 'success');
+      }
+    });
+  } catch { toast('Gagal menyalin, coba download langsung'); }
+});
+</script>
+</body>
+</html>
