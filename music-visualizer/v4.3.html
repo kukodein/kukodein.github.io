@@ -483,19 +483,16 @@ input[type=file]{display:none;}
     <div id="export-bar-wrap"><div id="export-bar"></div></div>
     <div id="export-pct">0%</div>
     <div id="export-action-row" style="display:none;flex-direction:column;gap:10px;margin-top:16px;align-items:center;">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <div style="display:flex;gap:10px;">
         <button class="btn btn-primary" onclick="downloadWebm()" style="font-size:12px;">⬇ Download WebM</button>
         <button class="btn btn-primary" onclick="convertToMp4()" style="font-size:12px;background:linear-gradient(135deg,#e8444a,#c0392b);">🔄 Convert → MP4</button>
       </div>
       <div style="font-size:10px;color:var(--text3);text-align:center;max-width:280px;line-height:1.5;">
         💡 <strong>MP4</strong> fix masalah seek di YouTube.<br>
-        Konversi di browser, tidak perlu install apapun.<br>
+        Proses konversi di browser (~1-3 mnt) — tidak perlu install apapun.<br>
         Pertama kali memuat FFmpeg.wasm ~10 detik.
       </div>
-      <div style="display:flex;gap:8px;margin-top:4px;">
-        <button class="btn btn-outline" id="export-new-btn" onclick="startNewExport()" style="font-size:11px;display:none;">🔁 Export Ulang</button>
-        <button class="btn btn-outline" onclick="closeExportOverlay()" style="font-size:11px;">✕ Tutup</button>
-      </div>
+      <button class="btn btn-outline" onclick="closeExportOverlay()" style="font-size:11px;margin-top:2px;">✕ Tutup</button>
     </div>
     <button class="btn btn-outline" id="export-cancel-btn" onclick="cancelExport()" style="margin-top:14px;font-size:11px;">✕ Cancel</button>
   </div>
@@ -513,7 +510,6 @@ let animRAF=null, loadedFonts=new Set(['Inter']), dummyPhase=0, isDark=true;
 let particles=[];
 let CANVAS_W=960, CANVAS_H=540;
 let isExporting=false;
-let exportAudioDest=null; // ref ke MediaStreamDestination export, untuk disconnect
 
 const canvas=document.getElementById('preview-canvas');
 const ctx=canvas.getContext('2d');
@@ -868,12 +864,8 @@ function drawFrame(offCanvas,offCtx){
   if(v('particle-enabled').checked && !offCanvas){
     updateAndDrawParticles(x,W,H,sc);
   } else if(v('particle-enabled').checked && offCanvas){
-    // Export: scale koordinat partikel dari preview canvas ke resolusi export
-    const scaleX=W/CANVAS_W, scaleY=H/CANVAS_H;
-    for(let p of particles){
-      const ep=Object.assign({},p,{x:p.x*scaleX, y:p.y*scaleY});
-      drawParticleShape(x,ep,sc);
-    }
+    // For export: just draw without updating (positions already updated in preview)
+    for(let p of particles) drawParticleShape(x,p,sc);
   }
 
   // Music Animation
@@ -1098,7 +1090,6 @@ function cancelExport(){
   if(audioEl){
     audioEl.pause();audioEl.currentTime=0;
     try{analyser.disconnect();}catch(e){}
-    if(exportAudioDest){try{audioSource.disconnect(exportAudioDest);}catch(e){} exportAudioDest=null;}
     analyser.connect(audioCtx.destination);
   }
   v('export-overlay').classList.remove('active');
@@ -1109,27 +1100,12 @@ function cancelExport(){
 // EXPORT — realtime 1x, mute speaker, clean audio-video sync
 // ══════════════════════════════════════════
 async function startExport(){
-  // Jika ada hasil export sebelumnya, tampilkan dulu — jangan langsung timpa
-  if(lastWebmBlob){
-    v('export-msg').textContent='Hasil export sebelumnya masih tersedia:';
-    v('export-bar').style.width='100%';
-    v('export-pct').textContent='100%';
-    v('export-action-row').style.display='flex';
-    v('export-cancel-btn').style.display='none';
-    v('export-new-btn').style.display='inline-flex';
-    v('export-overlay').classList.add('active');
-    return;
-  }
-
   if(!audioEl&&!confirm('No audio loaded. Export silent video?'))return;
-  beginExport();
-}
-
-async function beginExport(){
   const resStr=s('res-select');
   const[EW,EH]=resStr.split('x').map(Number);
   const durInput=parseInt(s('dur-select'));
-  // durInput dihitung ulang setelah play() sebagai actualDuration — ini hanya untuk guard awal
+  const duration=durInput>0?durInput:(audioEl?audioEl.duration:10);
+
   lastExportRes=resStr;
   lastWebmBlob=null;
 
@@ -1139,8 +1115,6 @@ async function beginExport(){
   v('export-pct').textContent='0%';
   v('export-msg').textContent='Initializing...';
   v('export-action-row').style.display='none';
-  v('export-new-btn').style.display='none';
-  v('export-cancel-btn').style.display='inline-flex';
   v('rec-indicator').classList.add('active');
   await new Promise(r=>setTimeout(r,80));
 
@@ -1153,9 +1127,7 @@ async function beginExport(){
   let muteGain=null;
   if(audioEl){
     if(audioCtx?.state==='suspended') await audioCtx.resume();
-    // Disconnect audioDest lama jika masih ada dari export sebelumnya
-    if(exportAudioDest){try{audioSource.disconnect(exportAudioDest);}catch(e){} exportAudioDest=null;}
-    // Mute speaker via gain=0
+    // Putus analyser → destination, ganti dengan gain=0 (mute speaker)
     try{analyser.disconnect();}catch(e){}
     muteGain=audioCtx.createGain();
     muteGain.gain.value=0;
@@ -1167,9 +1139,9 @@ async function beginExport(){
   const cs=ec.captureStream(30);
   let stream=cs;
   if(audioEl){
-    exportAudioDest=audioCtx.createMediaStreamDestination();
-    audioSource.connect(exportAudioDest);
-    stream=new MediaStream([...cs.getVideoTracks(),...exportAudioDest.stream.getAudioTracks()]);
+    const audioDest=audioCtx.createMediaStreamDestination();
+    audioSource.connect(audioDest);
+    stream=new MediaStream([...cs.getVideoTracks(),...audioDest.stream.getAudioTracks()]);
   }
 
   // ── MediaRecorder ────────────────────────────────────────────────
@@ -1184,11 +1156,10 @@ async function beginExport(){
   rec.ondataavailable=e=>{if(e.data.size>0)exportChunks.push(e.data);};
 
   rec.onstop=()=>{
-    // Restore audio graph — disconnect semua export nodes
+    // Restore audio graph
     if(audioEl){
       try{analyser.disconnect();}catch(e){}
       if(muteGain){try{muteGain.disconnect();}catch(e){}}
-      if(exportAudioDest){try{audioSource.disconnect(exportAudioDest);}catch(e){} exportAudioDest=null;}
       analyser.connect(audioCtx.destination);
       audioEl.pause(); audioEl.currentTime=0;
     }
@@ -1200,6 +1171,7 @@ async function beginExport(){
       return;
     }
     lastWebmBlob=new Blob(exportChunks,{type:'video/webm'});
+    // Tampilkan tombol download pilihan
     v('export-msg').textContent='Export selesai! Pilih format:';
     v('export-bar').style.width='100%';
     v('export-pct').textContent='100%';
@@ -1214,43 +1186,23 @@ async function beginExport(){
   v('export-msg').textContent=`Recording ${resStr} (realtime)...`;
   isExporting=true;
 
-  // Pastikan duration valid — ambil ulang setelah audio play
-  const actualDuration = audioEl
-    ? (durInput>0 ? durInput : (isFinite(audioEl.duration)?audioEl.duration:99999))
-    : (durInput>0?durInput:10);
-
   const FPS=30;
   let rafId=null;
   let lastRender=performance.now();
-  let stopped=false;
-
-  // Safety net: paksa stop setelah durasi + 2 detik buffer
-  const safetyTimer=setTimeout(()=>{
-    if(!stopped&&rec.state!=='inactive'){
-      stopped=true; isExporting=false;
-      rec.stop();
-    }
-  },(actualDuration+2)*1000);
 
   function renderLoop(){
-    if(!isExporting||stopped){cancelAnimationFrame(rafId);return;}
+    if(!isExporting){cancelAnimationFrame(rafId);return;}
 
     const now=performance.now();
     if(now-lastRender>=1000/FPS-2){
       lastRender=now;
       drawFrame(ec,ex);
-
       const cur=audioEl?audioEl.currentTime:0;
-      const pct=Math.min(100,Math.round(cur/actualDuration*100));
+      const pct=Math.min(100,Math.round(cur/duration*100));
       v('export-bar').style.width=pct+'%';
       v('export-pct').textContent=pct+'%';
-      v('export-msg').textContent=`Recording... ${fmtTime(cur)} / ${fmtTime(actualDuration)}`;
-
-      // Stop: audio ended ATAU currentTime melewati durasi
-      const shouldStop=(audioEl&&audioEl.ended)||(cur>=actualDuration);
-      if(shouldStop&&!stopped){
-        stopped=true; isExporting=false;
-        clearTimeout(safetyTimer);
+      // Stop saat audio selesai atau durasi tercapai
+      if(cur>=duration-0.1||(audioEl&&audioEl.ended)){
         if(rec.state!=='inactive') rec.stop();
         return;
       }
@@ -1269,7 +1221,7 @@ function downloadWebm(){
   const a=document.createElement('a');
   a.href=url; a.download=`mv-${lastExportRes}-${Date.now()}.webm`;
   a.click(); URL.revokeObjectURL(url);
-  // TIDAK tutup overlay — biarkan user bisa convert MP4 juga
+  v('export-overlay').classList.remove('active');
 }
 
 // ══════════════════════════════════════════
@@ -1285,6 +1237,7 @@ async function convertToMp4(){
   v('export-pct').textContent='0%';
 
   try{
+    // Load ffmpeg.wasm via CDN (tidak perlu install)
     if(!window.FFmpeg){
       await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
       await loadScript('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
@@ -1293,20 +1246,16 @@ async function convertToMp4(){
     const{FFmpeg:FF}=window.FFmpeg;
     const{fetchFile}=window.FFmpegUtil;
 
-    // Reset jika instance sebelumnya tidak valid
-    if(ffmpegLoaded&&(!window._ffInstance||typeof window._ffInstance.exec!=='function')){
-      ffmpegLoaded=false; window._ffInstance=null;
-    }
-
     if(!ffmpegLoaded){
       v('export-msg').textContent='Menginisialisasi FFmpeg...';
       window._ffInstance=new FF();
       window._ffInstance.on('log',({message})=>{
+        // parse progress dari ffmpeg log
         const m=message.match(/time=(\d+:\d+:\d+)/);
         if(m){v('export-msg').textContent=`Konversi... ${m[1]}`;}
       });
       window._ffInstance.on('progress',({progress})=>{
-        const pct=Math.round(Math.min(progress,1)*100);
+        const pct=Math.round(progress*100);
         v('export-bar').style.width=pct+'%';
         v('export-pct').textContent=pct+'%';
       });
@@ -1365,14 +1314,6 @@ function loadScript(src){
 function closeExportOverlay(){
   v('export-overlay').classList.remove('active');
   v('rec-indicator').classList.remove('active');
-  lastWebmBlob=null; // reset agar export berikutnya mulai baru
-}
-
-function startNewExport(){
-  lastWebmBlob=null;
-  v('export-overlay').classList.remove('active');
-  if(!audioEl&&!confirm('No audio loaded. Export silent video?'))return;
-  beginExport();
 }
 
 // ══════════════════════════════════════════

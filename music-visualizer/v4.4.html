@@ -513,7 +513,6 @@ let animRAF=null, loadedFonts=new Set(['Inter']), dummyPhase=0, isDark=true;
 let particles=[];
 let CANVAS_W=960, CANVAS_H=540;
 let isExporting=false;
-let exportAudioDest=null; // ref ke MediaStreamDestination export, untuk disconnect
 
 const canvas=document.getElementById('preview-canvas');
 const ctx=canvas.getContext('2d');
@@ -1098,7 +1097,6 @@ function cancelExport(){
   if(audioEl){
     audioEl.pause();audioEl.currentTime=0;
     try{analyser.disconnect();}catch(e){}
-    if(exportAudioDest){try{audioSource.disconnect(exportAudioDest);}catch(e){} exportAudioDest=null;}
     analyser.connect(audioCtx.destination);
   }
   v('export-overlay').classList.remove('active');
@@ -1124,12 +1122,14 @@ async function startExport(){
   if(!audioEl&&!confirm('No audio loaded. Export silent video?'))return;
   beginExport();
 }
+}
 
 async function beginExport(){
   const resStr=s('res-select');
   const[EW,EH]=resStr.split('x').map(Number);
   const durInput=parseInt(s('dur-select'));
-  // durInput dihitung ulang setelah play() sebagai actualDuration — ini hanya untuk guard awal
+  const duration=durInput>0?durInput:(audioEl?audioEl.duration:10);
+
   lastExportRes=resStr;
   lastWebmBlob=null;
 
@@ -1153,9 +1153,7 @@ async function beginExport(){
   let muteGain=null;
   if(audioEl){
     if(audioCtx?.state==='suspended') await audioCtx.resume();
-    // Disconnect audioDest lama jika masih ada dari export sebelumnya
-    if(exportAudioDest){try{audioSource.disconnect(exportAudioDest);}catch(e){} exportAudioDest=null;}
-    // Mute speaker via gain=0
+    // Putus analyser → destination, ganti dengan gain=0 (mute speaker)
     try{analyser.disconnect();}catch(e){}
     muteGain=audioCtx.createGain();
     muteGain.gain.value=0;
@@ -1167,9 +1165,9 @@ async function beginExport(){
   const cs=ec.captureStream(30);
   let stream=cs;
   if(audioEl){
-    exportAudioDest=audioCtx.createMediaStreamDestination();
-    audioSource.connect(exportAudioDest);
-    stream=new MediaStream([...cs.getVideoTracks(),...exportAudioDest.stream.getAudioTracks()]);
+    const audioDest=audioCtx.createMediaStreamDestination();
+    audioSource.connect(audioDest);
+    stream=new MediaStream([...cs.getVideoTracks(),...audioDest.stream.getAudioTracks()]);
   }
 
   // ── MediaRecorder ────────────────────────────────────────────────
@@ -1184,11 +1182,10 @@ async function beginExport(){
   rec.ondataavailable=e=>{if(e.data.size>0)exportChunks.push(e.data);};
 
   rec.onstop=()=>{
-    // Restore audio graph — disconnect semua export nodes
+    // Restore audio graph
     if(audioEl){
       try{analyser.disconnect();}catch(e){}
       if(muteGain){try{muteGain.disconnect();}catch(e){}}
-      if(exportAudioDest){try{audioSource.disconnect(exportAudioDest);}catch(e){} exportAudioDest=null;}
       analyser.connect(audioCtx.destination);
       audioEl.pause(); audioEl.currentTime=0;
     }
@@ -1200,6 +1197,7 @@ async function beginExport(){
       return;
     }
     lastWebmBlob=new Blob(exportChunks,{type:'video/webm'});
+    // Tampilkan tombol download pilihan
     v('export-msg').textContent='Export selesai! Pilih format:';
     v('export-bar').style.width='100%';
     v('export-pct').textContent='100%';
@@ -1285,6 +1283,7 @@ async function convertToMp4(){
   v('export-pct').textContent='0%';
 
   try{
+    // Load ffmpeg.wasm via CDN (tidak perlu install)
     if(!window.FFmpeg){
       await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
       await loadScript('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
@@ -1293,20 +1292,16 @@ async function convertToMp4(){
     const{FFmpeg:FF}=window.FFmpeg;
     const{fetchFile}=window.FFmpegUtil;
 
-    // Reset jika instance sebelumnya tidak valid
-    if(ffmpegLoaded&&(!window._ffInstance||typeof window._ffInstance.exec!=='function')){
-      ffmpegLoaded=false; window._ffInstance=null;
-    }
-
     if(!ffmpegLoaded){
       v('export-msg').textContent='Menginisialisasi FFmpeg...';
       window._ffInstance=new FF();
       window._ffInstance.on('log',({message})=>{
+        // parse progress dari ffmpeg log
         const m=message.match(/time=(\d+:\d+:\d+)/);
         if(m){v('export-msg').textContent=`Konversi... ${m[1]}`;}
       });
       window._ffInstance.on('progress',({progress})=>{
-        const pct=Math.round(Math.min(progress,1)*100);
+        const pct=Math.round(progress*100);
         v('export-bar').style.width=pct+'%';
         v('export-pct').textContent=pct+'%';
       });

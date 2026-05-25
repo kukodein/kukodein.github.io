@@ -1,5 +1,14 @@
 [
   {
+    "name": "Music Video Visualizer",
+    "desc": "Create music visualizers and export to WebM format",
+    "category": ["Video", "Audio"],
+    "emoji": "📶",
+    "image": "",
+    "url": "./music-visualizer/",
+    "lastmod": "2026-05-01"
+  },
+  {
     "name": "Thread Splitter",
     "desc": "Split long text into Twitter/X threads automatically",
     "category": ["Text"],
@@ -24,15 +33,6 @@
     "emoji": "📚",
     "image": "",
     "url": "./carousel-generator/",
-    "lastmod": "2026-05-01"
-  },
-  {
-    "name": "Music Video Visualizer",
-    "desc": "Create music visualizers and export to WebM format",
-    "category": ["Video", "Audio"],
-    "emoji": "📶",
-    "image": "",
-    "url": "./music-visualizer/",
     "lastmod": "2026-05-01"
   },
   {
