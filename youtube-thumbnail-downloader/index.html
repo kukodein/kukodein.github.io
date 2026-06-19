@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Thumbnail Downloader</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── Light theme ── */
+  :root {
+    --red: #FF0000;
+    --red-dark: #CC0000;
+    --bg: #F4F4F4;
+    --surface: #FFFFFF;
+    --surface2: #F0F0F0;
+    --surface3: #E8E8E8;
+    --border: rgba(0,0,0,0.1);
+    --border-md: rgba(0,0,0,0.18);
+    --text: #0F0F0F;
+    --text2: #606060;
+    --text3: #999999;
+    --green-bg: #E8F5E9;
+    --green-text: #2E7D32;
+    --gray-bg: #EEEEEE;
+    --gray-text: #757575;
+    --radius: 10px;
+    --radius-sm: 7px;
+    --error-bg: #FFF0F0;
+    --error-border: #FFCDD2;
+    --error-text: #C62828;
+  }
+
+  /* ── Dark theme (manual toggle) ── */
+  [data-theme="dark"] {
+    --bg: #0F0F0F;
+    --surface: #1C1C1C;
+    --surface2: #272727;
+    --surface3: #333333;
+    --border: rgba(255,255,255,0.1);
+    --border-md: rgba(255,255,255,0.2);
+    --text: #F1F1F1;
+    --text2: #AAAAAA;
+    --text3: #666666;
+    --green-bg: #1A3A1C;
+    --green-text: #81C784;
+    --gray-bg: #2A2A2A;
+    --gray-text: #888888;
+    --error-bg: #2D1B1B;
+    --error-border: #7B2020;
+    --error-text: #EF9A9A;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 16px 80px;
+    transition: background .2s, color .2s;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .lang-switcher {
+    display: flex;
+    border: 1px solid var(--border-md);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .lang-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border: none;
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .lang-btn + .lang-btn { border-left: 1px solid var(--border); }
+  .lang-btn.active { background: var(--red); color: #fff; }
+  .lang-btn:not(.active):hover { background: var(--surface2); color: var(--text); }
+
+  .theme-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border: 1px solid var(--border-md);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .theme-btn:hover { background: var(--surface2); color: var(--text); }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .logo {
+    width: 44px; height: 44px;
+    background: var(--red);
+    border-radius: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .header p {
+    font-size: 0.82rem;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    width: 100%;
+    max-width: 1000px;
+    transition: background .2s, border-color .2s;
+  }
+
+  /* ── Input row ── */
+  .input-row {
+    display: flex;
+    gap: 8px;
+  }
+  .input-row input {
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    background: var(--surface2);
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius);
+    padding: 11px 16px;
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s, background .2s;
+    min-width: 0;
+  }
+  .input-row input::placeholder { color: var(--text3); }
+  .input-row input:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(255,0,0,0.12);
+    background: var(--surface);
+  }
+  .btn-search {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 11px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    transition: background .15s, transform .1s;
+    flex-shrink: 0;
+  }
+  .btn-search:hover { background: var(--red-dark); }
+  .btn-search:active { transform: scale(0.97); }
+  .btn-search:disabled { background: var(--text3); cursor: default; transform: none; }
+
+  /* ── Error ── */
+  .error-box {
+    display: none;
+    margin-top: 12px;
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: var(--error-text);
+    align-items: center;
+    gap: 8px;
+  }
+  .error-box.show { display: flex; }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+
+  /* ── Main preview ── */
+  .preview-wrap {
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    line-height: 0;
+  }
+  .preview-wrap img { width: 100%; display: block; }
+
+  /* ── Meta row ── */
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin-top: 10px;
+  }
+  .meta-item { font-size: 0.78rem; color: var(--text2); }
+  .meta-item span { font-weight: 500; color: var(--text); }
+  .meta-item a {
+    color: var(--red);
+    text-decoration: none;
+    font-weight: 500;
+    word-break: break-all;
+  }
+  .meta-item a:hover { text-decoration: underline; }
+
+  /* ── Resolution grid: 3 col desktop, 2 col mobile ── */
+  .res-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 600px) {
+    .res-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .res-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface2);
+    transition: border-color .15s;
+  }
+  .res-card:hover { border-color: var(--red); }
+
+  .res-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+    background: var(--surface3);
+  }
+  .res-thumb-empty {
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface3);
+  }
+  .res-thumb-empty svg { opacity: 0.25; }
+
+  .res-info { padding: 10px 12px 12px; }
+  .res-name { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 2px; display: inline;}
+  .res-dim  { font-size: 0.7rem; color: var(--text3); margin-bottom: 8px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  .badge-ok { background: var(--green-bg); color: var(--green-text); }
+  .badge-na { background: var(--gray-bg);  color: var(--gray-text); }
+
+  .res-actions { display: flex; gap: 6px; }
+  .btn-dl {
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 7px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: background .15s;
+  }
+  .btn-dl:hover { background: var(--red-dark); }
+  .btn-dl:disabled { background: var(--text3); cursor: default; }
+
+  .btn-copy {
+    background: var(--surface);
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    color: var(--text2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color .15s, border-color .15s;
+  }
+  .btn-copy:hover { color: var(--red); border-color: var(--red); }
+
+  /* ── Result section ── */
+  .result-section { display: none; }
+  .result-section.show { display: block; }
+
+  /* ── Spinner ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+    flex-shrink: 0;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--text);
+    color: var(--surface);
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity .2s, transform .2s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 9999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 20px;
+    font-size: 0.72rem;
+    color: var(--text3);
+    text-align: center;
+    max-width: 1000px;
+  }
+
+  /* ── Moon/Sun icon ── */
+  .icon-moon, .icon-sun { display: none; }
+  [data-theme="light"] .icon-moon { display: inline; }
+  [data-theme="dark"]  .icon-sun  { display: inline; }
+  #themeLabel{display: none;}
+
+</style>
+</head>
+<body>
+
+<!-- Top controls -->
+<div class="topbar">
+  <div class="lang-switcher">
+    <button class="lang-btn active" id="langEn" onclick="setLang('en')">🇺🇸 EN</button>
+    <button class="lang-btn" id="langId" onclick="setLang('id')">🇮🇩 ID</button>
+  </div>
+  <button class="theme-btn" onclick="toggleTheme()">
+    <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+    <svg class="icon-sun"  width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="themeLabel">Dark mode</span>
+  </button>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+      <rect width="22" height="16" rx="4" fill="#FF0000"/>
+      <polygon points="9,4 17,8 9,12" fill="white"/>
+    </svg>
+  </div>
+  <h1>YouTube Thumbnail Downloader</h1>
+  <p id="headerSub">Download high-quality thumbnails from any YouTube video</p>
+</div>
+
+<!-- Card -->
+<div class="card">
+  <div class="input-row">
+    <input type="text" id="urlInput" autofocus autocomplete="off" spellcheck="false"
+      placeholder="Paste YouTube URL, youtu.be, or Shorts link...">
+    <button class="btn-search" id="fetchBtn" onclick="handleFetch()">
+      <span class="spinner" id="spinner"></span>
+      <svg id="searchIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span id="fetchLabel">Search</span>
+    </button>
+  </div>
+
+  <div class="error-box" id="errBox">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span id="errMsg"></span>
+  </div>
+
+  <div class="result-section" id="resultSection">
+    <div class="divider"></div>
+    <div class="section-label" id="labelPreview">Preview — highest quality</div>
+    <div class="preview-wrap">
+      <img id="mainPreview" src="" alt="Thumbnail preview">
+    </div>
+    <div class="meta-row">
+      <div class="meta-item" style="display:none">Video URL: <a id="displayYTURL" href="#" target="_blank">—</a></div>
+      <div class="meta-item" id="metaId">Video ID: <span id="displayId">—</span></div>
+      <div class="meta-item" id="metaUrl">URL Image: <a id="displayUrl" href="#" target="_blank">—</a></div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-label" id="labelRes">All resolutions</div>
+    <div class="res-grid" id="resGrid"></div>
+  </div>
+</div>
+
+<div class="footer" id="footerText">Thumbnails fetched directly from YouTube servers · No data is sent elsewhere</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const RESOLUTIONS = [
+  { key: 'maxresdefault', label: 'Max Resolution', size: '1280×720' },
+  { key: 'sddefault',     label: 'SD Default',     size: '640×480'  },
+  { key: 'hqdefault',     label: 'HQ Default',     size: '480×360'  },
+  { key: 'mqdefault',     label: 'MQ Default',     size: '320×180'  },
+  { key: '0',             label: 'Default',         size: '480×360'  },
+];
+
+const STRINGS = {
+  en: {
+    headerSub:     'Download high-quality thumbnails from any YouTube video',
+    placeholder:   'Paste YouTube URL, youtu.be, or Shorts link...',
+    search:        'Search',
+    loading:       'Loading...',
+    labelPreview:  'Preview — highest quality',
+    labelRes:      'All resolutions',
+    metaId:        'Video ID:',
+    metaUrl:       'URL:',
+    badgeOk:       'Available',
+    badgeNa:       'Not available',
+    download:      'Download',
+    copyTitle:     'Copy URL',
+    copied:        'URL copied!',
+    copyFail:      'Copy failed',
+    errEmpty:      'Please enter a YouTube URL first.',
+    errInvalid:    'URL not recognized. Try: youtube.com/watch?v=..., youtu.be/..., or Shorts.',
+    errNotFound:   'Thumbnail not found. Make sure the video is public and the ID is valid.',
+    footer:        'Thumbnails fetched directly from YouTube servers · No data is sent elsewhere',
+    // themeLight:    'Light mode',
+    // themeDark:     'Dark mode',
+  },
+  id: {
+    headerSub:     'Download thumbnail berkualitas tinggi dari video YouTube manapun',
+    placeholder:   'Tempel URL YouTube, youtu.be, atau link Shorts...',
+    search:        'Cari',
+    loading:       'Memuat...',
+    labelPreview:  'Preview — kualitas tertinggi',
+    labelRes:      'Semua resolusi',
+    metaId:        'Video ID:',
+    metaUrl:       'URL:',
+    badgeOk:       'Tersedia',
+    badgeNa:       'Tidak tersedia',
+    download:      'Download',
+    copyTitle:     'Salin URL',
+    copied:        'URL disalin!',
+    copyFail:      'Gagal menyalin',
+    errEmpty:      'Masukkan URL YouTube terlebih dahulu.',
+    errInvalid:    'Format URL tidak dikenali. Coba: youtube.com/watch?v=..., youtu.be/..., atau Shorts.',
+    errNotFound:   'Thumbnail tidak ditemukan. Pastikan video bersifat publik dan Video ID valid.',
+    footer:        'Thumbnail diambil langsung dari server YouTube · Tidak ada data yang dikirim ke tempat lain',
+    // themeLight:    'Mode terang',
+    // themeDark:     'Mode gelap',
+  }
+};
+
+let lang = 'en';
+let theme = 'light';
+let currentVideoId = null;
+let currentChecks = [];
+
+function t(key) { return STRINGS[lang][key] || key; }
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.getElementById('headerSub').textContent = t('headerSub');
+  document.getElementById('urlInput').placeholder = t('placeholder');
+  document.getElementById('fetchLabel').textContent = t('search');
+  document.getElementById('labelPreview').textContent = t('labelPreview');
+  document.getElementById('labelRes').textContent = t('labelRes');
+  document.getElementById('footerText').textContent = t('footer');
+  const isDark = theme === 'dark';
+  document.getElementById('themeLabel').textContent = isDark ? t('themeLight') : t('themeDark');
+
+  document.getElementById('langEn').classList.toggle('active', lang === 'en');
+  document.getElementById('langId').classList.toggle('active', lang === 'id');
+
+  if (currentVideoId && currentChecks.length) {
+    document.getElementById('resGrid').innerHTML =
+      RESOLUTIONS.map((r, i) => resCard(currentVideoId, r, currentChecks[i])).join('');
+  }
+}
+
+function setLang(l) {
+  lang = l;
+  applyLang();
+}
+
+function toggleTheme() {
+  theme = theme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeLabel').textContent = theme === 'dark' ? t('themeLight') : t('themeDark');
+}
+
+function extractId(url) {
+  url = url.trim();
+  const patterns = [
+    /[?&]v=([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /\/embed\/([a-zA-Z0-9_-]{11})/,
+    /\/shorts\/([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function thumbUrl(id, key) {
+  return `https://img.youtube.com/vi/${id}/${key}.jpg`;
+}
+
+function showError(msg) {
+  document.getElementById('errMsg').textContent = msg;
+  document.getElementById('errBox').classList.add('show');
+}
+function hideError() {
+  document.getElementById('errBox').classList.remove('show');
+}
+
+function setLoading(on) {
+  document.getElementById('fetchBtn').disabled = on;
+  document.getElementById('spinner').style.display = on ? 'block' : 'none';
+  document.getElementById('searchIcon').style.display = on ? 'none' : 'block';
+  document.getElementById('fetchLabel').textContent = on ? t('loading') : t('search');
+}
+
+function checkImg(url) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth > 120);
+    img.onerror = () => resolve(false);
+    img.src = url + '?_=' + Date.now();
+  });
+}
+
+async function downloadBlob(url, filename) {
+  try {
+    const r = await fetch(url, { mode: 'cors' });
+    if (!r.ok) throw new Error();
+    const blob = await r.blob();
+    const bUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = bUrl; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(bUrl), 8000);
+  } catch {
+    window.open(url, '_blank');
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function copyUrl(url) {
+  navigator.clipboard.writeText(url)
+    .then(() => showToast(t('copied')))
+    .catch(() => showToast(t('copyFail')));
+}
+
+const emptyThumbHtml = `<div class="res-thumb-empty"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></div>`;
+
+function resCard(id, res, avail) {
+  const url = thumbUrl(id, res.key);
+  const fname = `yt_${id}_${res.key}.jpg`;
+  const thumb = avail
+    ? `<img class="res-thumb" src="${url}" alt="${res.label}" loading="lazy">`
+    : emptyThumbHtml;
+  const badge = avail
+    ? `<div class="badge badge-ok">${t('badgeOk')}</div>`
+    : `<div class="badge badge-na">${t('badgeNa')}</div>`;
+  const dlBtn = avail
+    ? `<button class="btn-dl" onclick="downloadBlob('${url}','${fname}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 3v12M7 13l5 5 5-5"/><path d="M3 21h18"/></svg>${t('download')}</button>`
+    : `<button class="btn-dl" disabled><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 3v12M7 13l5 5 5-5"/><path d="M3 21h18"/></svg>${t('download')}</button>`;
+  return `<div class="res-card">${thumb}<div class="res-info"><div class="res-name">${res.label} (${res.size})</div>${badge}<div class="res-actions">${dlBtn}<button class="btn-copy" title="${t('copyTitle')}" onclick="copyUrl('${url}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div></div>`;
+}
+
+async function handleFetch() {
+  const raw = document.getElementById('urlInput').value;
+  hideError();
+  document.getElementById('resultSection').classList.remove('show');
+
+  if (!raw.trim()) { showError(t('errEmpty')); return; }
+  const id = extractId(raw);
+  if (!id) { showError(t('errInvalid')); return; }
+
+  setLoading(true);
+  const checks = await Promise.all(RESOLUTIONS.map(r => checkImg(thumbUrl(id, r.key))));
+  setLoading(false);
+
+  const bestIdx = checks.findIndex(c => c);
+  if (bestIdx === -1) { showError(t('errNotFound')); return; }
+
+  currentVideoId = id;
+  currentChecks = checks;
+
+  const bestUrl = thumbUrl(id, RESOLUTIONS[bestIdx].key);
+  document.getElementById('mainPreview').src = bestUrl;
+  document.getElementById('displayId').textContent = id;
+  const urlEl = document.getElementById('displayUrl');
+  urlEl.textContent = bestUrl;
+  urlEl.href = bestUrl;
+
+  // const urlYTEl = document.getElementById('displayYTURL');
+  // urlYTEl.textContent = fullURL;
+  // urlYTEl.href =  fullURL;
+
+  const urlYTEl = document.getElementById('displayYTURL');
+
+  // Cek apakah elemen ditemukan di HTML
+  if (urlYTEl) {
+    const fullURL = 'https://www.youtube.com/watch?v=' + id;
+    urlYTEl.textContent = fullURL;
+    urlYTEl.href = fullURL;
+  } else {
+    console.error("Elemen dengan id 'displayYTURL' tidak ditemukan di HTML!");
+  }
+
+  document.getElementById('resGrid').innerHTML =
+    RESOLUTIONS.map((r, i) => resCard(id, r, checks[i])).join('');
+
+  document.getElementById('resultSection').classList.add('show');
+}
+
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleFetch();
+});
+document.getElementById('urlInput').addEventListener('input', hideError);
+
+applyLang();
+</script>
+</body>
+</html>

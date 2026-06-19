@@ -18,6 +18,15 @@
     "lastmod": "2026-05-01"
   },
   {
+    "name": "Get YouTube Thumbnail",
+    "desc": "Fetch and download YouTube thumbnail images by video URL",
+    "category": ["Video", "Image"],
+    "emoji": "▶️",
+    "image": "",
+    "url": "./youtube-thumbnail-downloader/",
+    "lastmod": "2026-05-01"
+  },
+  {
     "name": "MotionForge",
     "desc": "Background video motion generator for creative projects",
     "category": ["Video", "Image"],
@@ -373,15 +382,6 @@
     "desc": "Preview and customize SRT subtitle styles with font, color, and position",
     "category": ["Video", "Text"],
     "emoji": "🎞️",
-    "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
-    "url": "#",
-    "lastmod": "2026-05-01"
-  },
-  {
-    "name": "Get YouTube Thumbnail",
-    "desc": "Fetch and download YouTube thumbnail images by video URL",
-    "category": ["Video", "Image"],
-    "emoji": "🖼️",
     "image": "https://cdn-icons-png.flaticon.com/128/5110/5110278.png",
     "url": "#",
     "lastmod": "2026-05-01"
