@@ -82,7 +82,7 @@
   },
   {
     "name": "Video Narrator",
-    "desc": "Edit video narration with text-to-speech and images",
+    "desc": "Edit video narration with (TTS) text-to-speech and images",
     "category": ["Video", "Image"],
     "emoji": "🎬",
     "image": "",
@@ -168,6 +168,15 @@
     "emoji": "🏞️",
     "image": "",
     "url": "https://image.exe.my.id/",
+    "lastmod": "2026-05-01"
+  },
+  {
+    "name": "Convert Case",
+    "desc": "Convert text to different letter case formats instantly",
+    "category": ["Text"],
+    "emoji": "🔤",
+    "image": "",
+    "url": "/convert-case/",
     "lastmod": "2026-05-01"
   },
   {

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convert Case — Text Case Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eff1ec;
+    --surface: #ffffff;
+    --surface-2: #f7f8f6;
+    --text: #14181b;
+    --muted: #5b655f;
+    --border: #dadfda;
+    --accent: #2f6f5e;
+    --accent-ink: #24564a;
+    --accent-2: #c77b3b;
+    --danger: #b3432f;
+    --shadow: 0 1px 2px rgba(20,24,27,0.06), 0 6px 16px rgba(20,24,27,0.05);
+    --radius: 10px;
+  }
+  [data-theme="dark"] {
+    --bg: #14181b;
+    --surface: #1d2226;
+    --surface-2: #20262a;
+    --text: #e7ece9;
+    --muted: #8b948f;
+    --border: #2b3134;
+    --accent: #4fb3a0;
+    --accent-ink: #6ecab8;
+    --accent-2: #e0954f;
+    --danger: #e0715a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 20px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'tnum' 1;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  header.top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px; gap: 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .mark {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; letter-spacing: -0.5px;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+  }
+  .brand h1 { font-size: 17px; font-weight: 700; margin: 0; letter-spacing: -0.2px; }
+  .brand p { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+  .theme-toggle {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px; cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+  .theme-toggle button {
+    border: none; background: transparent; cursor: pointer;
+    width: 32px; height: 32px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 15px;
+    transition: background .2s, color .2s;
+  }
+  .theme-toggle button.active { background: var(--accent); color: #fff; }
+
+  h2.section-title {
+    font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); font-weight: 600; margin: 0 0 10px 2px;
+  }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 16px; margin-bottom: 20px;
+  }
+
+  textarea#input {
+    width: 100%; min-height: 220px; resize: vertical;
+    border: none; outline: none; background: transparent; color: var(--text);
+    font-family: 'Inter', sans-serif; font-size: 15.5px; line-height: 1.6;
+    padding: 4px 2px;
+  }
+  textarea#input::placeholder { color: var(--muted); }
+
+  .panel-actions {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px;
+  }
+  .icon-btn {
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--text); border-radius: 8px; padding: 7px 12px;
+    font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit;
+    transition: border-color .15s, background .15s;
+  }
+  .icon-btn:hover { border-color: var(--accent); }
+  .icon-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+  .actions-group { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .stats-inline {
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: baseline;
+  }
+  .stat-chip { display: flex; align-items: baseline; gap: 5px; }
+  .stat-chip .num {
+    font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .stat-chip .label {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  .case-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+  .case-btn {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--text); border-radius: 8px; padding: 13px 12px;
+    cursor: pointer; font-family: inherit; text-align: center;
+    transition: transform .08s ease, border-color .15s, box-shadow .15s;
+  }
+  .case-btn:hover { border-color: var(--accent); }
+  .case-btn:active { transform: scale(0.97); }
+  .case-btn .name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .case-btn.last-used {
+    border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset;
+  }
+  .case-btn.last-used::after {
+    content: ''; position: absolute; top: 8px; right: 8px;
+    width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2);
+  }
+
+  .history-panel { display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; }
+  .history-empty { color: var(--muted); font-size: 13px; padding: 8px 2px; }
+  .history-item {
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+    cursor: pointer; background: var(--surface-2); transition: border-color .15s;
+  }
+  .history-item:hover { border-color: var(--accent); }
+  .history-item .meta {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 10.5px; color: var(--muted); margin-bottom: 4px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .history-item .snippet {
+    font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .footer-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+
+  @media (max-width: 640px) {
+    .brand p { display: none; }
+    .case-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body data-theme="light">
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="mark">Aa</div>
+      <div>
+        <h1>Convert Case</h1>
+        <p>Convert text to different letter case formats instantly</p>
+      </div>
+    </div>
+    <div class="theme-toggle" id="themeToggle" role="group" aria-label="Select theme">
+      <button data-theme="light" aria-label="Light mode">☀</button>
+      <button data-theme="dark" aria-label="Dark mode">🌙</button>
+    </div>
+  </header>
+
+  <h2 class="section-title">Text</h2>
+  <div class="panel">
+    <textarea id="input" placeholder="Paste or type your text here..."></textarea>
+    <div class="panel-actions">
+      <div class="stats-inline" id="statsBar"></div>
+      <div class="actions-group">
+        <button class="icon-btn" id="pasteBtn">📋 Paste</button>
+        <button class="icon-btn" id="copyBtn">⧉ Copy</button>
+        <button class="icon-btn" id="downloadBtn">⇩ Download .txt</button>
+        <button class="icon-btn danger" id="clearBtn">🗑 Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Choose case format</h2>
+  <div class="panel">
+    <div class="case-grid" id="caseGrid"></div>
+  </div>
+
+  <h2 class="section-title">Conversion history</h2>
+  <div class="panel">
+    <div class="panel-actions" style="margin-top:0; padding-top:0; border-top:none; margin-bottom:10px;">
+      <span style="font-size:12px; color:var(--muted);">Saved automatically in your browser (max. 20)</span>
+      <button class="icon-btn danger" id="clearHistoryBtn">🗑 Clear history</button>
+    </div>
+    <div class="history-panel" id="historyPanel"></div>
+  </div>
+
+  <p class="footer-note">Everything runs directly in your browser — no text is ever sent to a server.</p>
+</div>
+
+<script>
+(function () {
+  const input = document.getElementById('input');
+  const statsBar = document.getElementById('statsBar');
+  const caseGrid = document.getElementById('caseGrid');
+  const historyPanel = document.getElementById('historyPanel');
+  const themeToggle = document.getElementById('themeToggle');
+
+  const HISTORY_KEY = 'cc_history_v1';
+  const THEME_KEY = 'cc_theme_v1';
+  let lastUsedKey = null;
+
+  // ---------- Theme ----------
+  function setTheme(t) {
+    document.body.setAttribute('data-theme', t);
+    localStorage.setItem(THEME_KEY, t);
+    [...themeToggle.querySelectorAll('button')].forEach(b => {
+      b.classList.toggle('active', b.dataset.theme === t);
+    });
+  }
+  themeToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (btn) setTheme(btn.dataset.theme);
+  });
+  const savedTheme = localStorage.getItem(THEME_KEY) ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  setTheme(savedTheme);
+
+  // ---------- Case conversion logic ----------
+  function toWords(str) {
+    const spaced = str.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+    return spaced.match(/[A-Za-z0-9]+/g) || [];
+  }
+  function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }
+
+  const cases = [
+    { key: 'sentence', name: 'Sentence case', fn: t => {
+        const lower = t.toLowerCase();
+        return lower.replace(/(^\s*\w|[.!?]\s+\w)/g, m => m.toUpperCase());
+      }
+    },
+    { key: 'lower', name: 'lower case', fn: t => t.toLowerCase() },
+    { key: 'upper', name: 'UPPER CASE', fn: t => t.toUpperCase() },
+    { key: 'title', name: 'Title Case', fn: t =>
+        t.replace(/\S+/g, w => cap(w))
+    },
+    { key: 'alternating', name: 'aLtErNaTiNg cAsE', fn: t => {
+        let up = false, out = '';
+        for (const ch of t) {
+          if (/[a-zA-Z]/.test(ch)) { out += up ? ch.toUpperCase() : ch.toLowerCase(); up = !up; }
+          else out += ch;
+        }
+        return out;
+      }
+    },
+    { key: 'inverse', name: 'InVeRsE CaSe', fn: t =>
+        [...t].map(ch => ch === ch.toUpperCase() ? ch.toLowerCase() : ch.toUpperCase()).join('')
+    },
+    { key: 'camel', name: 'camelCase', fn: t => {
+        const w = toWords(t);
+        return w.map((word, i) => i === 0 ? word.toLowerCase() : cap(word)).join('');
+      }
+    },
+    { key: 'pascal', name: 'PascalCase', fn: t =>
+        toWords(t).map(cap).join('')
+    },
+    { key: 'snake', name: 'snake_case', fn: t =>
+        toWords(t).map(w => w.toLowerCase()).join('_')
+    },
+    { key: 'constant', name: 'CONSTANT_CASE', fn: t =>
+        toWords(t).map(w => w.toUpperCase()).join('_')
+    },
+    { key: 'kebab', name: 'kebab-case', fn: t =>
+        toWords(t).map(w => w.toLowerCase()).join('-')
+    },
+    { key: 'train', name: 'Train-Case', fn: t =>
+        toWords(t).map(cap).join('-')
+    },
+    { key: 'dot', name: 'dot.case', fn: t =>
+        toWords(t).map(w => w.toLowerCase()).join('.')
+    },
+  ];
+
+  cases.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'case-btn';
+    btn.id = 'case-' + c.key;
+    btn.innerHTML = `<span class="name">${c.name}</span>`;
+    btn.addEventListener('click', () => applyCase(c));
+    caseGrid.appendChild(btn);
+  });
+
+  function applyCase(c) {
+    const before = input.value;
+    if (!before.trim()) { input.focus(); return; }
+    const after = c.fn(before);
+    input.value = after;
+    updateStats();
+    markLastUsed(c.key);
+    saveHistory(before, after, c.name);
+  }
+
+  function markLastUsed(key) {
+    if (lastUsedKey) {
+      const prev = document.getElementById('case-' + lastUsedKey);
+      if (prev) prev.classList.remove('last-used');
+    }
+    const el = document.getElementById('case-' + key);
+    if (el) el.classList.add('last-used');
+    lastUsedKey = key;
+  }
+
+  // ---------- Stats ----------
+  function computeStats(text) {
+    const chars = text.length;
+    const words = (text.trim().match(/\S+/g) || []).length;
+    const lines = text === '' ? 0 : text.split('\n').length;
+    const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim()).length;
+    const readingTime = Math.max(0, Math.ceil(words / 200));
+    return { chars, words, lines, paragraphs, readingTime };
+  }
+
+  const statDefs = [
+    { key: 'chars', label: 'Characters' },
+    { key: 'words', label: 'Words' },
+    { key: 'lines', label: 'Lines' },
+    { key: 'paragraphs', label: 'Paragraphs' },
+    { key: 'readingTime', label: 'Reading (min)' },
+  ];
+  statDefs.forEach(s => {
+    const cell = document.createElement('div');
+    cell.className = 'stat-chip';
+    cell.id = 'stat-' + s.key;
+    cell.innerHTML = `<span class="num">0</span><span class="label">${s.label}</span>`;
+    statsBar.appendChild(cell);
+  });
+
+  function updateStats() {
+    const s = computeStats(input.value);
+    statDefs.forEach(def => {
+      const cell = document.getElementById('stat-' + def.key);
+      if (cell) cell.querySelector('.num').textContent = s[def.key];
+    });
+  }
+  input.addEventListener('input', updateStats);
+  updateStats();
+
+  // ---------- Actions ----------
+  document.getElementById('pasteBtn').addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      input.value = text;
+      updateStats();
+    } catch (e) {
+      input.focus();
+      alert("Couldn't access the clipboard automatically. Please paste manually (Ctrl+V).");
+    }
+  });
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(input.value);
+      flashBtn('copyBtn', '✓ Copied');
+    } catch (e) { alert('Failed to copy text.'); }
+  });
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const blob = new Blob([input.value], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'converted-text.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    input.value = '';
+    updateStats();
+    input.focus();
+  });
+  function flashBtn(id, text) {
+    const btn = document.getElementById(id);
+    const original = btn.textContent;
+    btn.textContent = text;
+    setTimeout(() => btn.textContent = original, 1200);
+  }
+
+  // ---------- History ----------
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function saveHistory(before, after, caseName) {
+    const history = loadHistory();
+    history.unshift({
+      snippet: before.slice(0, 60),
+      caseName,
+      before,
+      after,
+      time: new Date().toISOString(),
+    });
+    while (history.length > 20) history.pop();
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    renderHistory();
+  }
+  function renderHistory() {
+    const history = loadHistory();
+    historyPanel.innerHTML = '';
+    if (!history.length) {
+      historyPanel.innerHTML = '<div class="history-empty">No conversion history yet.</div>';
+      return;
+    }
+    history.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      const time = new Date(item.time);
+      const timeStr = time.toLocaleString('en-US', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+      div.innerHTML = `<div class="meta"><span>${item.caseName}</span><span>${timeStr}</span></div>
+        <div class="snippet">${escapeHtml(item.snippet) || '(empty)'}</div>`;
+      div.addEventListener('click', () => {
+        input.value = item.after;
+        updateStats();
+      });
+      historyPanel.appendChild(div);
+    });
+  }
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+  document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+    if (confirm('Clear all conversion history?')) {
+      localStorage.removeItem(HISTORY_KEY);
+      renderHistory();
+    }
+  });
+  renderHistory();
+})();
+</script>
+</body>
+</html>

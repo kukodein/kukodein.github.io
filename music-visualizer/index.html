@@ -125,23 +125,23 @@ input[type=file]{display:none;}
 
 <div id="topbar">
   <h1>🎬 MV Creator</h1>
-  <button class="btn btn-outline" onclick="document.getElementById('import-json').click()">⬆ Import</button>
+  <button class="btn btn-outline" onclick="document.getElementById('import-json').click()" title="Import Setting">🔺 Import</button>
   <input type="file" id="import-json" accept=".json" onchange="importSettings(this)">
-  <button class="btn btn-outline" onclick="exportSettings()">⬇ JSON</button>
+  <button class="btn btn-outline" onclick="exportSettings()" title="Export Setting">🔻 Export</button>
   <div class="sep"></div>
   <div id="rec-indicator"><div class="dot-rec"></div> REC</div>
-  <select id="ratio-select" class="topbar-select" onchange="changeRatio()">
+  <select id="ratio-select" class="topbar-select" onchange="changeRatio()" title="Ratio of Video">
     <option value="16:9">16:9</option>
     <option value="9:16">9:16</option>
     <option value="1:1">1:1</option>
     <option value="4:3">4:3</option>
   </select>
-  <select id="res-select" class="topbar-select">
+  <select id="res-select" class="topbar-select" title="Resolution of Video">
     <option value="1920x1080">FHD 1080p</option>
     <option value="3840x2160">UHD 4K</option>
     <option value="1280x720">HD 720p</option>
   </select>
-  <select id="dur-select" class="topbar-select">
+  <select id="dur-select" class="topbar-select" title="Duration of Video">
     <option value="0">Full Audio</option>
     <option value="15">15 sec</option>
     <option value="30">30 sec</option>
@@ -149,7 +149,7 @@ input[type=file]{display:none;}
     <option value="300">5 min</option>
   </select>
   <button id="theme-toggle" onclick="toggleTheme()" title="Dark/Light">🌙</button>
-  <button class="btn btn-primary" onclick="startExport()">▶ Export WebM</button>
+  <button class="btn btn-primary" onclick="startExport()">💿 Export WebM</button>
 </div>
 
 <div id="main">
@@ -159,7 +159,7 @@ input[type=file]{display:none;}
   <div class="section">
     <div class="section-header" onclick="toggleSection(this)">
       <span class="icon">🎵</span> Music Animation
-      <span class="chevron">🔽</span>
+      <span class="chevron">🔺</span>
     </div>
     <div class="section-body">
       <div class="field"><label class="checkbox-row"><input type="checkbox" id="anim-enabled" checked onchange="drawFrame()"><span>Enable music animation</span></label></div>
@@ -202,7 +202,7 @@ input[type=file]{display:none;}
   <div class="section">
     <div class="section-header collapsed" onclick="toggleSection(this)">
       <span class="icon">✨</span> Particle Effects
-      <span class="chevron">🔼</span>
+      <span class="chevron">🔺</span>
     </div>
     <div class="section-body hidden">
       <div class="field"><label class="checkbox-row"><input type="checkbox" id="particle-enabled"><span>Enable particle effects</span></label></div>
@@ -234,7 +234,7 @@ input[type=file]{display:none;}
   <div class="section">
     <div class="section-header collapsed" onclick="toggleSection(this)">
       <span class="icon">✏️</span> Title Text
-      <span class="chevron">🔼</span>
+      <span class="chevron">🔺</span>
     </div>
     <div class="section-body hidden">
       <div class="field"><label>Title Text</label><input type="text" id="title-text" value="Strings and Sparks" oninput="drawFrame()"></div>
@@ -291,7 +291,7 @@ input[type=file]{display:none;}
   <div class="section">
     <div class="section-header collapsed" onclick="toggleSection(this)">
       <span class="icon">🎤</span> Artist Text
-      <span class="chevron">🔼</span>
+      <span class="chevron">🔺</span>
     </div>
     <div class="section-body hidden">
       <div class="field"><label>Artist Name</label><input type="text" id="artist-text" value="Elogia" oninput="drawFrame()"></div>
@@ -348,7 +348,7 @@ input[type=file]{display:none;}
   <div class="section">
     <div class="section-header collapsed" onclick="toggleSection(this)">
       <span class="icon">🖼️</span> Cover Art
-      <span class="chevron">🔼</span>
+      <span class="chevron">🔺</span>
     </div>
     <div class="section-body hidden">
       <div class="file-drop" id="cover-drop" onclick="document.getElementById('cover-input').click()">
@@ -411,7 +411,7 @@ input[type=file]{display:none;}
   <div class="section">
     <div class="section-header collapsed" onclick="toggleSection(this)">
       <span class="icon">📊</span> Progress Bar
-      <span class="chevron">🔼</span>
+      <span class="chevron">🔺</span>
     </div>
     <div class="section-body hidden">
       <div class="field"><label class="checkbox-row"><input type="checkbox" id="pb-enabled" checked><span>Show progress bar</span></label></div>
@@ -448,7 +448,7 @@ input[type=file]{display:none;}
   <div class="section">
     <div class="section-header collapsed" onclick="toggleSection(this)">
       <span class="icon">🌅</span> Background
-      <span class="chevron">🔼</span>
+      <span class="chevron">🔺</span>
     </div>
     <div class="section-body hidden">
       <div class="file-drop" id="bg-drop" onclick="document.getElementById('bg-input').click()">
@@ -471,7 +471,7 @@ input[type=file]{display:none;}
   </div>
   <div id="canvas-info">Preview — drag texts on canvas</div>
   <div id="audio-controls">
-    <button id="play-btn" onclick="togglePlay()">▶</button>
+    <button id="play-btn" onclick="togglePlay()">▶️</button>
     <input type="range" id="audio-progress" value="0" min="0" max="100" step="0.1" oninput="seekAudio(this.value)">
     <span id="audio-time">0:00 / 0:00</span>
   </div>
@@ -539,7 +539,7 @@ function updateRange(el,vid){v(vid).textContent=el.value;}
 function toggleSection(header){
   const col=header.classList.toggle('collapsed');
   header.nextElementSibling.classList.toggle('hidden',col);
-  header.querySelector('.chevron').textContent=col?'🔼':'🔽';
+  header.querySelector('.chevron').textContent=col?'🔺':'🔺';
 }
 function setAlign(who,align,btn){
   if(who==='title')titleAlign=align; else artistAlign=align;
@@ -677,7 +677,7 @@ function loadAudio(input){
     v('audio-time').textContent=`${fmtTime(audioEl.currentTime)} / ${fmtTime(audioEl.duration)}`;
     updateOutsidePB();
   });
-  audioEl.addEventListener('ended',()=>{isPlaying=false;v('play-btn').textContent='▶';});
+  audioEl.addEventListener('ended',()=>{isPlaying=false;v('play-btn').textContent='▶️';});
   if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   if(audioSource){try{audioSource.disconnect();}catch(e){}}
   audioSource=audioCtx.createMediaElementSource(audioEl);
@@ -688,8 +688,8 @@ function loadAudio(input){
 function togglePlay(){
   if(!audioEl){startAnimLoop();return;}
   if(audioCtx?.state==='suspended')audioCtx.resume();
-  if(isPlaying){audioEl.pause();isPlaying=false;v('play-btn').textContent='▶';}
-  else{audioEl.play();isPlaying=true;v('play-btn').textContent='⏸';}
+  if(isPlaying){audioEl.pause();isPlaying=false;v('play-btn').textContent='▶️';}
+  else{audioEl.play();isPlaying=true;v('play-btn').textContent='⏸️';}
 }
 function seekAudio(val){if(audioEl)audioEl.currentTime=val;}
 function updateOutsidePB(){
