@@ -177,7 +177,25 @@
     "emoji": "🔤",
     "image": "",
     "url": "/convert-case/",
-    "lastmod": "2026-05-01"
+    "lastmod": "2026-07-01"
+  },
+  {
+    "name": "Gemini Gambar POV Tangan",
+    "desc": "Generate Image Hand POV using Nano Banana",
+    "category": ["Gemini","Image"],
+    "emoji": "✨",
+    "image": "",
+    "url": "https://gemini.google.com/share/b769d4daac12",
+    "lastmod": "2026-07-01"
+  },
+  {
+    "name": "Gemini Generate Gambar Objek",
+    "desc": "Generate Image Object using Nano Banana",
+    "category": ["Gemini","Image"],
+    "emoji": "✨",
+    "image": "",
+    "url": "https://share.gemini.google/4xtYhasdhgNt",
+    "lastmod": "2026-07-01"
   },
   {
     "name": "QuizReel",

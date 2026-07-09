@@ -628,7 +628,7 @@ const emptyThumbHtml = `<div class="res-thumb-empty"><svg width="24" height="24"
 
 function resCard(id, res, avail) {
   const url = thumbUrl(id, res.key);
-  const fname = `yt_${id}_${res.key}.jpg`;
+  const fname = `${id}_${res.key}.jpg`;
   const thumb = avail
     ? `<img class="res-thumb" src="${url}" alt="${res.label}" loading="lazy">`
     : emptyThumbHtml;
