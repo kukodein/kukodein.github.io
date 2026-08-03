@@ -3,195 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YouTube Thumbnail Downloader</title>
+<title>YouTube Thumbnail Downloader — Free HD Thumbnail Grabber</title>
+<meta name="description" content="Download YouTube video thumbnails in HD, Full HD, and SD quality for free. Simply paste any YouTube URL to grab the thumbnail image instantly — no login required.">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ── Light theme ── */
   :root {
-    --red: #FF0000;
-    --red-dark: #CC0000;
-    --bg: #F4F4F4;
-    --surface: #FFFFFF;
-    --surface2: #F0F0F0;
-    --surface3: #E8E8E8;
-    --border: rgba(0,0,0,0.1);
-    --border-md: rgba(0,0,0,0.18);
-    --text: #0F0F0F;
-    --text2: #606060;
-    --text3: #999999;
-    --green-bg: #E8F5E9;
-    --green-text: #2E7D32;
-    --gray-bg: #EEEEEE;
-    --gray-text: #757575;
-    --radius: 10px;
-    --radius-sm: 7px;
-    --error-bg: #FFF0F0;
-    --error-border: #FFCDD2;
-    --error-text: #C62828;
+    --red: #FF0000; --red-dark: #CC0000;
+    --bg: #F4F4F4; --surface: #FFFFFF; --surface2: #F0F0F0; --surface3: #E8E8E8;
+    --border: rgba(0,0,0,0.1); --border-md: rgba(0,0,0,0.18);
+    --text: #0F0F0F; --text2: #606060; --text3: #999999;
+    --green-bg: #E8F5E9; --green-text: #2E7D32;
+    --gray-bg: #EEEEEE; --gray-text: #757575;
+    --radius: 10px; --radius-sm: 7px;
+    --error-bg: #FFF0F0; --error-border: #FFCDD2; --error-text: #C62828;
   }
-
-  /* ── Dark theme (manual toggle) ── */
   [data-theme="dark"] {
-    --bg: #0F0F0F;
-    --surface: #1C1C1C;
-    --surface2: #272727;
-    --surface3: #333333;
-    --border: rgba(255,255,255,0.1);
-    --border-md: rgba(255,255,255,0.2);
-    --text: #F1F1F1;
-    --text2: #AAAAAA;
-    --text3: #666666;
-    --green-bg: #1A3A1C;
-    --green-text: #81C784;
-    --gray-bg: #2A2A2A;
-    --gray-text: #888888;
-    --error-bg: #2D1B1B;
-    --error-border: #7B2020;
-    --error-text: #EF9A9A;
+    --bg: #0F0F0F; --surface: #1C1C1C; --surface2: #272727; --surface3: #333333;
+    --border: rgba(255,255,255,0.1); --border-md: rgba(255,255,255,0.2);
+    --text: #F1F1F1; --text2: #AAAAAA; --text3: #666666;
+    --green-bg: #1A3A1C; --green-text: #81C784;
+    --gray-bg: #2A2A2A; --gray-text: #888888;
+    --error-bg: #2D1B1B; --error-border: #7B2020; --error-text: #EF9A9A;
   }
 
   body {
     font-family: 'Inter', -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 36px 16px 80px;
-    transition: background .2s, color .2s;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    padding: 36px 16px 80px; transition: background .2s, color .2s;
   }
 
-  /* ── Top bar ── */
+  /* ── Topbar ── */
   .topbar {
-    width: 100%;
-    max-width: 1000px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 28px;
+    width: 100%; max-width: 1000px;
+    display: flex; justify-content: flex-end; align-items: center;
+    gap: 8px; margin-bottom: 28px;
   }
-  .lang-switcher {
-    display: flex;
-    border: 1px solid var(--border-md);
-    border-radius: 8px;
-    overflow: hidden;
-  }
+  .lang-switcher { display: flex; border: 1px solid var(--border-md); border-radius: 8px; overflow: hidden; }
   .lang-btn {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 6px 12px;
-    border: none;
-    background: var(--surface);
-    color: var(--text2);
-    cursor: pointer;
-    transition: background .15s, color .15s;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500;
+    padding: 6px 12px; border: none; background: var(--surface); color: var(--text2);
+    cursor: pointer; transition: background .15s, color .15s;
+    display: flex; align-items: center; gap: 5px;
   }
   .lang-btn + .lang-btn { border-left: 1px solid var(--border); }
   .lang-btn.active { background: var(--red); color: #fff; }
   .lang-btn:not(.active):hover { background: var(--surface2); color: var(--text); }
-
   .theme-btn {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 6px 12px;
-    border: 1px solid var(--border-md);
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--text2);
-    cursor: pointer;
-    transition: background .15s, color .15s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500;
+    padding: 6px 12px; border: 1px solid var(--border-md); border-radius: 8px;
+    background: var(--surface); color: var(--text2); cursor: pointer;
+    transition: background .15s, color .15s; display: flex; align-items: center; gap: 6px;
   }
   .theme-btn:hover { background: var(--surface2); color: var(--text); }
+  .icon-moon, .icon-sun { display: none; }
+  [data-theme="light"] .icon-moon { display: inline; }
+  [data-theme="dark"]  .icon-sun  { display: inline; }
 
   /* ── Header ── */
-  .header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
+  .header { text-align: center; margin-bottom: 24px; }
   .logo {
-    width: 44px; height: 44px;
-    background: var(--red);
-    border-radius: 11px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
+    width: 44px; height: 44px; background: var(--red); border-radius: 11px;
+    display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;
   }
-  .header h1 {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: -0.3px;
-  }
-  .header p {
-    font-size: 0.82rem;
-    color: var(--text2);
-    margin-top: 4px;
-  }
+  .header h1 { font-size: 1.3rem; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .header p  { font-size: 0.82rem; color: var(--text2); margin-top: 4px; }
 
   /* ── Card ── */
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 24px;
-    width: 100%;
-    max-width: 1000px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px; width: 100%; max-width: 1000px;
     transition: background .2s, border-color .2s;
   }
 
   /* ── Input row ── */
-  .input-row {
-    display: flex;
-    gap: 8px;
-  }
+  .input-row { display: flex; gap: 8px; }
   .input-row input {
-    flex: 1;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    background: var(--surface2);
-    border: 1px solid var(--border-md);
-    border-radius: var(--radius);
-    padding: 11px 16px;
-    color: var(--text);
-    outline: none;
-    transition: border-color .15s, box-shadow .15s, background .2s;
-    min-width: 0;
+    flex: 1; font-family: 'Inter', sans-serif; font-size: 0.9rem;
+    background: var(--surface2); border: 1px solid var(--border-md);
+    border-radius: var(--radius); padding: 11px 16px; color: var(--text); outline: none;
+    transition: border-color .15s, box-shadow .15s, background .2s; min-width: 0;
   }
   .input-row input::placeholder { color: var(--text3); }
   .input-row input:focus {
-    border-color: var(--red);
-    box-shadow: 0 0 0 3px rgba(255,0,0,0.12);
-    background: var(--surface);
+    border-color: var(--red); box-shadow: 0 0 0 3px rgba(255,0,0,0.12); background: var(--surface);
   }
   .btn-search {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.875rem;
-    font-weight: 500;
-    background: var(--red);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    padding: 11px 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    white-space: nowrap;
-    transition: background .15s, transform .1s;
-    flex-shrink: 0;
+    font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 500;
+    background: var(--red); color: #fff; border: none; border-radius: var(--radius);
+    padding: 11px 20px; cursor: pointer; display: flex; align-items: center; gap: 7px;
+    white-space: nowrap; transition: background .15s, transform .1s; flex-shrink: 0;
   }
   .btn-search:hover { background: var(--red-dark); }
   .btn-search:active { transform: scale(0.97); }
@@ -199,16 +102,10 @@
 
   /* ── Error ── */
   .error-box {
-    display: none;
-    margin-top: 12px;
-    background: var(--error-bg);
-    border: 1px solid var(--error-border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-size: 0.82rem;
-    color: var(--error-text);
-    align-items: center;
-    gap: 8px;
+    display: none; margin-top: 12px; background: var(--error-bg);
+    border: 1px solid var(--error-border); border-radius: var(--radius-sm);
+    padding: 10px 14px; font-size: 0.82rem; color: var(--error-text);
+    align-items: center; gap: 8px;
   }
   .error-box.show { display: flex; }
 
@@ -217,182 +114,164 @@
 
   /* ── Section label ── */
   .section-label {
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: var(--text3);
-    margin-bottom: 12px;
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 12px;
   }
+
+  /* ── Preview header row ── */
+  .preview-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; gap: 12px;
+  }
+  .preview-header .section-label { margin-bottom: 0; }
+  .btn-dl-main {
+    font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500;
+    background: var(--red); color: #fff; border: none; border-radius: var(--radius-sm);
+    padding: 7px 14px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: background .15s, transform .1s; flex-shrink: 0;
+  }
+  .btn-dl-main:hover { background: var(--red-dark); }
+  .btn-dl-main:active { transform: scale(0.97); }
 
   /* ── Main preview ── */
   .preview-wrap {
-    border-radius: var(--radius);
-    overflow: hidden;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    line-height: 0;
+    border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--border); background: var(--surface2); line-height: 0;
   }
   .preview-wrap img { width: 100%; display: block; }
 
   /* ── Meta row ── */
-  .meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 20px;
-    margin-top: 10px;
-  }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 10px; }
   .meta-item { font-size: 0.78rem; color: var(--text2); }
   .meta-item span { font-weight: 500; color: var(--text); }
-  .meta-item a {
-    color: var(--red);
-    text-decoration: none;
-    font-weight: 500;
-    word-break: break-all;
-  }
+  .meta-item a { color: var(--red); text-decoration: none; font-weight: 500; word-break: break-all; }
   .meta-item a:hover { text-decoration: underline; }
 
-  /* ── Resolution grid: 3 col desktop, 2 col mobile ── */
-  .res-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+  /* ── History ── */
+  .history-wrap { margin-top: 14px; }
+  .history-label {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 8px;
   }
-  @media (max-width: 600px) {
-    .res-grid { grid-template-columns: repeat(2, 1fr); }
+  .history-list { display: flex; flex-direction: column; gap: 5px; }
+  .history-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 7px 10px;
+    cursor: pointer; transition: border-color .15s;
+    text-align: left; width: 100%; font-family: 'Inter', sans-serif;
   }
+  .history-item:hover { border-color: var(--red); }
+  .history-thumb {
+    width: 48px; height: 27px; border-radius: 4px; object-fit: cover;
+    background: var(--surface3); flex-shrink: 0;
+  }
+  .history-id { font-size: 0.78rem; font-weight: 500; color: var(--text); flex: 1; min-width: 0; truncate: ellipsis; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .history-del {
+    font-family: 'Inter', sans-serif; font-size: 0.7rem; color: var(--text3);
+    background: none; border: none; cursor: pointer; padding: 2px 5px;
+    border-radius: 4px; flex-shrink: 0; transition: color .15s, background .15s;
+  }
+  .history-del:hover { color: var(--error-text); background: var(--error-bg); }
+
+  /* ── Resolution grid ── */
+  .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 600px) { .res-grid { grid-template-columns: repeat(2, 1fr); } }
 
   .res-card {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    background: var(--surface2);
-    transition: border-color .15s;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; background: var(--surface2); transition: border-color .15s;
   }
   .res-card:hover { border-color: var(--red); }
-
-  .res-thumb {
-    width: 100%;
-    aspect-ratio: 16/9;
-    object-fit: cover;
-    display: block;
-    background: var(--surface3);
-  }
+  .res-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: var(--surface3); }
   .res-thumb-empty {
-    width: 100%;
-    aspect-ratio: 16/9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--surface3);
+    width: 100%; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: var(--surface3);
   }
   .res-thumb-empty svg { opacity: 0.25; }
-
   .res-info { padding: 10px 12px 12px; }
-  .res-name { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 2px; display: inline;}
+  .res-name { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 2px; }
   .res-dim  { font-size: 0.7rem; color: var(--text3); margin-bottom: 8px; }
-
-  .badge {
-    display: inline-block;
-    font-size: 0.65rem;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 20px;
-    margin-bottom: 10px;
-  }
+  .badge { display: inline-block; font-size: 0.65rem; font-weight: 500; padding: 2px 8px; border-radius: 20px; margin-bottom: 10px; }
   .badge-ok { background: var(--green-bg); color: var(--green-text); }
   .badge-na { background: var(--gray-bg);  color: var(--gray-text); }
-
   .res-actions { display: flex; gap: 6px; }
   .btn-dl {
-    flex: 1;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background: var(--red);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 7px 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    transition: background .15s;
+    flex: 1; font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500;
+    background: var(--red); color: #fff; border: none; border-radius: var(--radius-sm);
+    padding: 7px 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    gap: 5px; transition: background .15s;
   }
   .btn-dl:hover { background: var(--red-dark); }
   .btn-dl:disabled { background: var(--text3); cursor: default; }
-
   .btn-copy {
-    background: var(--surface);
-    border: 1px solid var(--border-md);
-    border-radius: var(--radius-sm);
-    padding: 7px 10px;
-    color: var(--text2);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: var(--surface); border: 1px solid var(--border-md);
+    border-radius: var(--radius-sm); padding: 7px 10px; color: var(--text2);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: color .15s, border-color .15s;
   }
   .btn-copy:hover { color: var(--red); border-color: var(--red); }
 
-  /* ── Result section ── */
+  /* ── Result ── */
   .result-section { display: none; }
   .result-section.show { display: block; }
 
   /* ── Spinner ── */
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
-    width: 14px; height: 14px;
-    border: 2px solid rgba(255,255,255,0.35);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    display: none;
-    flex-shrink: 0;
+    width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35);
+    border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
+    display: none; flex-shrink: 0;
   }
 
   /* ── Toast ── */
   .toast {
-    position: fixed;
-    bottom: 24px; left: 50%;
+    position: fixed; bottom: 24px; left: 50%;
     transform: translateX(-50%) translateY(8px);
-    background: var(--text);
-    color: var(--surface);
-    padding: 9px 18px;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    opacity: 0;
-    transition: opacity .2s, transform .2s;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 9999;
+    background: var(--text); color: var(--surface);
+    padding: 9px 18px; border-radius: 8px; font-size: 0.8rem; font-weight: 500;
+    opacity: 0; transition: opacity .2s, transform .2s;
+    pointer-events: none; white-space: nowrap; z-index: 9999;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   /* ── Footer ── */
-  .footer {
-    margin-top: 20px;
-    font-size: 0.72rem;
-    color: var(--text3);
-    text-align: center;
-    max-width: 1000px;
+  .footer { margin-top: 20px; font-size: 0.72rem; color: var(--text3); text-align: center; max-width: 1000px; }
+
+  /* ── Landing / SEO section ── */
+  .landing {
+    width: 100%; max-width: 1000px; margin-top: 40px;
   }
+  .landing-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;
+  }
+  @media (max-width: 640px) { .landing-grid { grid-template-columns: 1fr; } }
+  .feature-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+  }
+  .feature-icon {
+    width: 36px; height: 36px; background: #FFF0F0; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+  }
+  [data-theme="dark"] .feature-icon { background: #2D1B1B; }
+  .feature-card h3 { font-size: 0.875rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .feature-card p  { font-size: 0.78rem; color: var(--text2); line-height: 1.55; }
 
-  /* ── Moon/Sun icon ── */
-  .icon-moon, .icon-sun { display: none; }
-  [data-theme="light"] .icon-moon { display: inline; }
-  [data-theme="dark"]  .icon-sun  { display: inline; }
-  #themeLabel{display: none;}
+  .landing-prose { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; }
+  .landing-prose h2 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+  .landing-prose p  { font-size: 0.82rem; color: var(--text2); line-height: 1.7; margin-bottom: 14px; }
+  .landing-prose p:last-child { margin-bottom: 0; }
+  .landing-prose strong { color: var(--text); font-weight: 500; }
 
+  .faq-list { margin-top: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+  .faq-item h3 { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .faq-item p  { font-size: 0.78rem; color: var(--text2); line-height: 1.6; }
 </style>
 </head>
 <body>
 
-<!-- Top controls -->
+<!-- Topbar -->
 <div class="topbar">
   <div class="lang-switcher">
     <button class="lang-btn active" id="langEn" onclick="setLang('en')">🇺🇸 EN</button>
@@ -417,8 +296,10 @@
   <p id="headerSub">Download high-quality thumbnails from any YouTube video</p>
 </div>
 
-<!-- Card -->
+<!-- Main card -->
 <div class="card">
+
+  <!-- Input -->
   <div class="input-row">
     <input type="text" id="urlInput" autofocus autocomplete="off" spellcheck="false"
       placeholder="Paste YouTube URL, youtu.be, or Shorts link...">
@@ -431,6 +312,7 @@
     </button>
   </div>
 
+  <!-- Error -->
   <div class="error-box" id="errBox">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -438,20 +320,101 @@
     <span id="errMsg"></span>
   </div>
 
+  <!-- Results -->
   <div class="result-section" id="resultSection">
     <div class="divider"></div>
-    <div class="section-label" id="labelPreview">Preview — highest quality</div>
+
+    <!-- Preview header with download button -->
+    <div class="preview-header">
+      <div class="section-label" id="labelPreview">Preview — highest quality</div>
+      <button class="btn-dl-main" id="btnDlMain" onclick="downloadMainPreview()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M12 3v12M7 13l5 5 5-5"/><path d="M3 21h18"/>
+        </svg>
+        <span id="labelDlMain">Download</span>
+      </button>
+    </div>
+
     <div class="preview-wrap">
       <img id="mainPreview" src="" alt="Thumbnail preview">
     </div>
     <div class="meta-row">
-      <div class="meta-item" style="display:none">Video URL: <a id="displayYTURL" href="#" target="_blank">—</a></div>
-      <div class="meta-item" id="metaId">Video ID: <span id="displayId">—</span></div>
-      <div class="meta-item" id="metaUrl">URL Image: <a id="displayUrl" href="#" target="_blank">—</a></div>
+      <div class="meta-item">Video ID: <span id="displayId">—</span></div>
+      <div class="meta-item">URL: <a id="displayUrl" href="#" target="_blank">—</a></div>
     </div>
+
     <div class="divider"></div>
     <div class="section-label" id="labelRes">All resolutions</div>
     <div class="res-grid" id="resGrid"></div>
+  </div>
+
+  <!-- History -->
+  <div class="history-wrap" id="historyWrap" style="display:none">
+    <div class="divider" style="margin-bottom:14px"></div>
+    <div class="history-label" id="labelHistory">Recent searches</div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+  
+</div>
+
+<!-- Landing / SEO section (English only, always visible) -->
+<div class="landing" id="landingSection">
+  <!-- Feature cards -->
+  <div class="landing-grid" style="margin-top:0">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 13l5 5 5-5"/><path d="M3 21h18"/></svg>
+      </div>
+      <h3>All Resolutions</h3>
+      <p>Get thumbnails in Max (1280×720), HD, SD, and more — every available size in one click.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+      </div>
+      <h3>No Registration</h3>
+      <p>Free and instant — paste any YouTube URL, watch?v=, youtu.be, Shorts, or embed link.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3>Privacy First</h3>
+      <p>Thumbnails are fetched directly from YouTube's CDN. No data is collected or stored by us.</p>
+    </div>
+  </div>
+
+  <!-- Prose SEO content -->
+  <div class="landing-prose">
+    <h2>How to Download a YouTube Thumbnail</h2>
+    <p>
+      Downloading a YouTube thumbnail is simple: copy the video URL from your browser address bar or the YouTube app's share menu, paste it into the field above, and click <strong>Search</strong>. The tool will automatically detect the video ID and load every available thumbnail resolution.
+    </p>
+    <p>
+      YouTube stores thumbnails on its public image CDN (<code>img.youtube.com</code>) under predictable filenames — <strong>maxresdefault.jpg</strong> for Full HD, <strong>sddefault.jpg</strong>, <strong>hqdefault.jpg</strong>, and <strong>mqdefault.jpg</strong> for smaller sizes. Not all videos have a <em>maxresdefault</em> thumbnail; this tool checks availability and clearly marks which resolutions exist.
+    </p>
+    <p>
+      Downloaded thumbnails are standard JPEG images you can use for video promotion, content repurposing, presentations, or reference. Please respect copyright — the thumbnail image belongs to the video creator or channel.
+    </p>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <h3>Can I download thumbnails from Shorts?</h3>
+        <p>Yes. Paste any <code>youtube.com/shorts/</code> link and the tool will extract the thumbnail the same way it does for regular videos.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Why is Max Resolution (1280×720) sometimes unavailable?</h3>
+        <p>YouTube only generates a <em>maxresdefault</em> thumbnail for videos uploaded in HD quality. Older or lower-resolution uploads may only have SD thumbnails available.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Is this tool free?</h3>
+        <p>Yes, completely free. No account, no watermark, no daily limit.</p>
+      </div>
+      <div class="faq-item">
+        <h3>What URL formats are supported?</h3>
+        <p>All standard YouTube formats: <code>youtube.com/watch?v=</code>, <code>youtu.be/</code>, <code>youtube.com/embed/</code>, <code>youtube.com/shorts/</code>, and bare video IDs (11 characters).</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -475,8 +438,8 @@ const STRINGS = {
     loading:       'Loading...',
     labelPreview:  'Preview — highest quality',
     labelRes:      'All resolutions',
-    metaId:        'Video ID:',
-    metaUrl:       'URL:',
+    labelHistory:  'Recent searches',
+    labelDlMain:   'Download',
     badgeOk:       'Available',
     badgeNa:       'Not available',
     download:      'Download',
@@ -487,8 +450,8 @@ const STRINGS = {
     errInvalid:    'URL not recognized. Try: youtube.com/watch?v=..., youtu.be/..., or Shorts.',
     errNotFound:   'Thumbnail not found. Make sure the video is public and the ID is valid.',
     footer:        'Thumbnails fetched directly from YouTube servers · No data is sent elsewhere',
-    // themeLight:    'Light mode',
-    // themeDark:     'Dark mode',
+    themeLight:    'Light mode',
+    themeDark:     'Dark mode',
   },
   id: {
     headerSub:     'Download thumbnail berkualitas tinggi dari video YouTube manapun',
@@ -497,8 +460,8 @@ const STRINGS = {
     loading:       'Memuat...',
     labelPreview:  'Preview — kualitas tertinggi',
     labelRes:      'Semua resolusi',
-    metaId:        'Video ID:',
-    metaUrl:       'URL:',
+    labelHistory:  'Pencarian terakhir',
+    labelDlMain:   'Download',
     badgeOk:       'Tersedia',
     badgeNa:       'Tidak tersedia',
     download:      'Download',
@@ -509,8 +472,8 @@ const STRINGS = {
     errInvalid:    'Format URL tidak dikenali. Coba: youtube.com/watch?v=..., youtu.be/..., atau Shorts.',
     errNotFound:   'Thumbnail tidak ditemukan. Pastikan video bersifat publik dan Video ID valid.',
     footer:        'Thumbnail diambil langsung dari server YouTube · Tidak ada data yang dikirim ke tempat lain',
-    // themeLight:    'Mode terang',
-    // themeDark:     'Mode gelap',
+    themeLight:    'Mode terang',
+    themeDark:     'Mode gelap',
   }
 };
 
@@ -518,33 +481,37 @@ let lang = 'en';
 let theme = 'light';
 let currentVideoId = null;
 let currentChecks = [];
+let currentBestUrl = null;
+let currentBestKey = null;
+
+// Session history: array of { id, url }
+let history = [];
+const MAX_HISTORY = 6;
 
 function t(key) { return STRINGS[lang][key] || key; }
 
 function applyLang() {
   document.documentElement.lang = lang;
-  document.getElementById('headerSub').textContent = t('headerSub');
-  document.getElementById('urlInput').placeholder = t('placeholder');
-  document.getElementById('fetchLabel').textContent = t('search');
+  document.getElementById('headerSub').textContent    = t('headerSub');
+  document.getElementById('urlInput').placeholder     = t('placeholder');
+  document.getElementById('fetchLabel').textContent   = t('search');
   document.getElementById('labelPreview').textContent = t('labelPreview');
-  document.getElementById('labelRes').textContent = t('labelRes');
-  document.getElementById('footerText').textContent = t('footer');
+  document.getElementById('labelRes').textContent     = t('labelRes');
+  document.getElementById('labelDlMain').textContent  = t('labelDlMain');
+  document.getElementById('footerText').textContent   = t('footer');
+  document.getElementById('labelHistory').textContent = t('labelHistory');
   const isDark = theme === 'dark';
-  document.getElementById('themeLabel').textContent = isDark ? t('themeLight') : t('themeDark');
-
+  document.getElementById('themeLabel').textContent   = isDark ? t('themeLight') : t('themeDark');
   document.getElementById('langEn').classList.toggle('active', lang === 'en');
   document.getElementById('langId').classList.toggle('active', lang === 'id');
-
   if (currentVideoId && currentChecks.length) {
     document.getElementById('resGrid').innerHTML =
       RESOLUTIONS.map((r, i) => resCard(currentVideoId, r, currentChecks[i])).join('');
   }
+  renderHistory();
 }
 
-function setLang(l) {
-  lang = l;
-  applyLang();
-}
+function setLang(l) { lang = l; applyLang(); }
 
 function toggleTheme() {
   theme = theme === 'light' ? 'dark' : 'light';
@@ -561,24 +528,17 @@ function extractId(url) {
     /\/shorts\/([a-zA-Z0-9_-]{11})/,
     /^([a-zA-Z0-9_-]{11})$/,
   ];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m) return m[1];
-  }
+  for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
   return null;
 }
 
-function thumbUrl(id, key) {
-  return `https://img.youtube.com/vi/${id}/${key}.jpg`;
-}
+function thumbUrl(id, key) { return `https://img.youtube.com/vi/${id}/${key}.jpg`; }
 
 function showError(msg) {
   document.getElementById('errMsg').textContent = msg;
   document.getElementById('errBox').classList.add('show');
 }
-function hideError() {
-  document.getElementById('errBox').classList.remove('show');
-}
+function hideError() { document.getElementById('errBox').classList.remove('show'); }
 
 function setLoading(on) {
   document.getElementById('fetchBtn').disabled = on;
@@ -606,15 +566,17 @@ async function downloadBlob(url, filename) {
     a.href = bUrl; a.download = filename;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(bUrl), 8000);
-  } catch {
-    window.open(url, '_blank');
-  }
+  } catch { window.open(url, '_blank'); }
+}
+
+function downloadMainPreview() {
+  if (!currentBestUrl || !currentVideoId) return;
+  downloadBlob(currentBestUrl, `yt_${currentVideoId}_${currentBestKey}.jpg`);
 }
 
 function showToast(msg) {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
+  el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2000);
 }
 
@@ -624,28 +586,60 @@ function copyUrl(url) {
     .catch(() => showToast(t('copyFail')));
 }
 
+/* ── History ── */
+function addHistory(id) {
+  history = history.filter(h => h.id !== id);
+  history.unshift({ id, url: `https://www.youtube.com/watch?v=${id}` });
+  if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+  renderHistory();
+}
+
+function removeHistory(id, e) {
+  e.stopPropagation();
+  history = history.filter(h => h.id !== id);
+  renderHistory();
+}
+
+function renderHistory() {
+  const wrap = document.getElementById('historyWrap');
+  const list = document.getElementById('historyList');
+  if (history.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  document.getElementById('labelHistory').textContent = t('labelHistory');
+  list.innerHTML = history.map(h => `
+    <button class="history-item" onclick="loadHistory('${h.id}')">
+      <img class="history-thumb" src="${thumbUrl(h.id, 'mqdefault')}" alt="" loading="lazy">
+      <span class="history-id">${h.url}</span>
+      <span class="history-del" onclick="removeHistory('${h.id}', event)" title="Remove">✕</span>
+    </button>`).join('');
+}
+
+function loadHistory(id) {
+  document.getElementById('urlInput').value = `https://www.youtube.com/watch?v=${id}`;
+  handleFetch();
+}
+
+/* ── Resolution cards ── */
 const emptyThumbHtml = `<div class="res-thumb-empty"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></div>`;
 
 function resCard(id, res, avail) {
-  const url = thumbUrl(id, res.key);
-  const fname = `${id}_${res.key}.jpg`;
-  const thumb = avail
-    ? `<img class="res-thumb" src="${url}" alt="${res.label}" loading="lazy">`
-    : emptyThumbHtml;
+  const url   = thumbUrl(id, res.key);
+  const fname = `yt_${id}_${res.key}.jpg`;
+  const thumb = avail ? `<img class="res-thumb" src="${url}" alt="${res.label}" loading="lazy">` : emptyThumbHtml;
   const badge = avail
     ? `<div class="badge badge-ok">${t('badgeOk')}</div>`
     : `<div class="badge badge-na">${t('badgeNa')}</div>`;
   const dlBtn = avail
     ? `<button class="btn-dl" onclick="downloadBlob('${url}','${fname}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 3v12M7 13l5 5 5-5"/><path d="M3 21h18"/></svg>${t('download')}</button>`
     : `<button class="btn-dl" disabled><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 3v12M7 13l5 5 5-5"/><path d="M3 21h18"/></svg>${t('download')}</button>`;
-  return `<div class="res-card">${thumb}<div class="res-info"><div class="res-name">${res.label} (${res.size})</div>${badge}<div class="res-actions">${dlBtn}<button class="btn-copy" title="${t('copyTitle')}" onclick="copyUrl('${url}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div></div>`;
+  return `<div class="res-card">${thumb}<div class="res-info"><div class="res-name">${res.label}</div><div class="res-dim">${res.size}</div>${badge}<div class="res-actions">${dlBtn}<button class="btn-copy" title="${t('copyTitle')}" onclick="copyUrl('${url}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div></div>`;
 }
 
+/* ── Main fetch ── */
 async function handleFetch() {
   const raw = document.getElementById('urlInput').value;
   hideError();
   document.getElementById('resultSection').classList.remove('show');
-
   if (!raw.trim()) { showError(t('errEmpty')); return; }
   const id = extractId(raw);
   if (!id) { showError(t('errInvalid')); return; }
@@ -658,39 +652,24 @@ async function handleFetch() {
   if (bestIdx === -1) { showError(t('errNotFound')); return; }
 
   currentVideoId = id;
-  currentChecks = checks;
+  currentChecks  = checks;
+  currentBestKey = RESOLUTIONS[bestIdx].key;
+  currentBestUrl = thumbUrl(id, currentBestKey);
 
-  const bestUrl = thumbUrl(id, RESOLUTIONS[bestIdx].key);
-  document.getElementById('mainPreview').src = bestUrl;
+  document.getElementById('mainPreview').src = currentBestUrl;
   document.getElementById('displayId').textContent = id;
   const urlEl = document.getElementById('displayUrl');
-  urlEl.textContent = bestUrl;
-  urlEl.href = bestUrl;
-
-  // const urlYTEl = document.getElementById('displayYTURL');
-  // urlYTEl.textContent = fullURL;
-  // urlYTEl.href =  fullURL;
-
-  const urlYTEl = document.getElementById('displayYTURL');
-
-  // Cek apakah elemen ditemukan di HTML
-  if (urlYTEl) {
-    const fullURL = 'https://www.youtube.com/watch?v=' + id;
-    urlYTEl.textContent = fullURL;
-    urlYTEl.href = fullURL;
-  } else {
-    console.error("Elemen dengan id 'displayYTURL' tidak ditemukan di HTML!");
-  }
+  urlEl.textContent = currentBestUrl;
+  urlEl.href = currentBestUrl;
 
   document.getElementById('resGrid').innerHTML =
     RESOLUTIONS.map((r, i) => resCard(id, r, checks[i])).join('');
 
   document.getElementById('resultSection').classList.add('show');
+  addHistory(id);
 }
 
-document.getElementById('urlInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') handleFetch();
-});
+document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') handleFetch(); });
 document.getElementById('urlInput').addEventListener('input', hideError);
 
 applyLang();
