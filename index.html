@@ -34,6 +34,7 @@
   <style>
     :root {
       --bg: #0f1117;
+      --bg-nav: #0f111799;
       --surface: #1a1d27;
       --surface2: #22263a;
       --border: #2e3250;
@@ -51,6 +52,7 @@
     }
     [data-theme="light"] {
       --bg: #f4f5fb;
+      --bg-nav: #f4f5fb99;
       --surface: #ffffff;
       --surface2: #f0f1fa;
       --border: #d8daf0;
@@ -82,7 +84,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: var(--bg);
+      background: var(--bg-nav);
       border-bottom: 1px solid var(--border);
       padding: 16px 0 12px;
       backdrop-filter: blur(12px);
@@ -305,14 +307,11 @@
       padding: 20px 0;
       margin-top: 48px;
       text-align: center;
-      font-size: 0.8rem;
       color: var(--text-muted);
       transition: border-color 0.3s;
     }
     .app-footer a {
       color: var(--accent);
-      text-decoration: none;
-      font-weight: 600;
     }
     .app-footer a:hover { text-decoration: underline; }
   </style>
@@ -333,30 +332,32 @@
       <span class="search-icon">🔍</span>
       <input class="search-input" id="searchInput" type="text" placeholder="Search apps..." autocomplete="off" autofocus />
     </div>
-    <!-- Category Pills -->
-    <div class="cat-pills" id="catPills"></div>
+    <div class="d-flex justify-content-between gap-2 flex-column flex-md-row">
+      <!-- Category Pills -->
+      <div class="cat-pills" id="catPills"></div>
+      <div class="d-flex align-items-center justify-content-between gap-2">
+        <span class="results-count pe-2 border-end" id="resultsCount"></span>
+        <div class="sort-group" id="sortGroup">
+          <button class="sort-btn active" data-sort="default">Default</button>
+          <button class="sort-btn" data-sort="az">A ⇾ Z</button>
+          <button class="sort-btn" data-sort="za">Z ⇾ A</button>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
 <!-- Main Content -->
 <main class="container-xl px-3 px-md-4 py-4">
-  <div class="d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap">
-    <span class="results-count" id="resultsCount"></span>
-    <div class="sort-group" id="sortGroup">
-      <button class="sort-btn active" data-sort="default">Default</button>
-      <button class="sort-btn" data-sort="az">A ⇾ Z</button>
-      <button class="sort-btn" data-sort="za">Z ⇾ A</button>
-    </div>
-  </div>
   <div class="app-grid" id="appGrid">
     <div class="loading-state">Loading apps...</div>
   </div>
 </main>
 
 <!-- Footer -->
-<footer class="app-footer">
+<footer class="app-footer small">
   <div class="container-xl px-3 px-md-4">
-    <span>© <span id="footerYear"></span> <a href="https://kukode.com" target="_blank" rel="noopener">kukode.com</a> — All rights reserved.</span>
+    <span>© <span id="footerYear"></span> <a href="https://kukode.com" class="text-decoration-none" target="_blank" rel="noopener">Kukode Digital</a> &bull; All rights reserved.</span>
   </div>
 </footer>
 
@@ -481,7 +482,7 @@ function renderApps() {
     const hasLink = app.url && app.url !== "#";
     const tag = hasLink ? "a" : "div";
     const linkAttrs = hasLink
-      ? `href="${app.url}" target="_blank" rel="noopener"`
+      ? `href="${app.url}" rel="noopener"`
       : "";
     const noLinkClass = hasLink ? "" : " no-link";
     const badge = hasLink ? "" : `<span class="badge-soon">Coming Soon</span>`;
